@@ -7,20 +7,10 @@ class Model
     protected $db;
     protected $table;
     protected $fillable = [];
-    protected $hidden = [];
 
     public function __construct()
     {
         $this->db = Database::getInstance();
-    }
-
-    /**
-     * Set table name
-     */
-    public function setTable($table)
-    {
-        $this->table = $table;
-        return $this;
     }
 
     /**
@@ -34,42 +24,31 @@ class Model
     }
 
     /**
-     * Find record by ID
+     * Find by ID
      */
     public function find($id)
     {
-        $sql = "SELECT * FROM {$this->table} WHERE id = ?";
+        $sql = "SELECT * FROM {$this->table} WHERE id = ? ";
         $stmt = $this->db->prepare($sql);
         $stmt->execute([$id]);
         return $stmt->fetch(\PDO::FETCH_ASSOC);
     }
 
     /**
-     * Find record by column
+     * Find by any column
      */
     public function findBy($column, $value)
     {
-        $sql = "SELECT * FROM {$this->table} WHERE {$column} = ?";
+        $sql = "SELECT * FROM {$this->table} WHERE {$column} = ? ";
         $stmt = $this->db->prepare($sql);
         $stmt->execute([$value]);
         return $stmt->fetch(\PDO::FETCH_ASSOC);
     }
 
     /**
-     * Find multiple records by column
+     * Create record
      */
-    public function findAllBy($column, $value)
-    {
-        $sql = "SELECT * FROM {$this->table} WHERE {$column} = ?";
-        $stmt = $this->db->prepare($sql);
-        $stmt->execute([$value]);
-        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
-    }
-
-    /**
-     * Create new record
-     */
-    public function create($data)
+    public function create(array $data)
     {
         $data = $this->filterFillable($data);
         $columns = implode(', ', array_keys($data));
@@ -77,24 +56,22 @@ class Model
         
         $sql = "INSERT INTO {$this->table} ({$columns}) VALUES ({$placeholders})";
         $stmt = $this->db->prepare($sql);
-        $result = $stmt->execute(array_values($data));
+        $stmt->execute(array_values($data));
         
-        return $result ? $this->db->lastInsertId() : false;
+        return $this->db->lastInsertId();
     }
 
     /**
      * Update record
      */
-    public function update($id, $data)
+    public function update($id, array $data)
     {
         $data = $this->filterFillable($data);
-        $setClause = implode(', ', array_map(fn($key) => "{$key} = ?", array_keys($data)));
+        $set = implode(', ', array_map(fn($k) => "{$k} = ? ", array_keys($data)));
         
-        $sql = "UPDATE {$this->table} SET {$setClause} WHERE id = ?";
+        $sql = "UPDATE {$this->table} SET {$set} WHERE id = ?";
         $stmt = $this->db->prepare($sql);
-        $values = array_merge(array_values($data), [$id]);
-        
-        return $stmt->execute($values);
+        return $stmt->execute([... array_values($data), $id]);
     }
 
     /**
@@ -108,9 +85,9 @@ class Model
     }
 
     /**
-     * Filter data by fillable columns
+     * Filter fillable
      */
-    protected function filterFillable($data)
+    protected function filterFillable(array $data)
     {
         if (empty($this->fillable)) {
             return $data;
@@ -119,18 +96,12 @@ class Model
     }
 
     /**
-     * Query builder - WHERE
+     * Raw query - untuk query custom apapun
      */
-    public function where($column, $operator = null, $value = null)
+    public function query($sql, array $params = [])
     {
-        return new QueryBuilder($this->db, $this->table, $column, $operator, $value);
-    }
-
-    /**
-     * Raw query
-     */
-    public function query($sql)
-    {
-        return $this->db->query($sql);
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($params);
+        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
     }
 }

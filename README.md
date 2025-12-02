@@ -1,110 +1,124 @@
-# 🏨 Hotel Booking System
+# 🏨 Hotel Booking System - Project PemWeb
 
-Sistem pemesanan hotel sederhana menggunakan arsitektur **MVC (Model-View-Controller)** dengan PHP Native dan Tailwind CSS.
+Sistem Pemesanan Hotel berbasis PHP dengan arsitektur MVC (Model-View-Controller) custom framework.
+
+![PHP](https://img.shields.io/badge/PHP-8.0+-777BB4? style=flat-square&logo=php&logoColor=white)
+![MySQL](https://img. shields.io/badge/MySQL-5.7+-4479A1?style=flat-square&logo=mysql&logoColor=white)
+![TailwindCSS](https://img.shields. io/badge/TailwindCSS-3.x-06B6D4? style=flat-square&logo=tailwindcss&logoColor=white)
 
 ---
 
-## 📋 Daftar Isi
+## 📑 Daftar Isi
 
-- [Tentang Project](#-tentang-project)
+- [Tentang Proyek](#-tentang-proyek)
 - [Fitur](#-fitur)
-- [Teknologi](#-teknologi)
-- [Arsitektur MVC](#-arsitektur-mvc)
-- [Struktur Folder](#-struktur-folder)
-- [Penjelasan Detail Folder & File](#-penjelasan-detail-folder--file)
-- [Database Schema](#-database-schema)
-- [Routes](#-routes)
+- [Persyaratan Sistem](#-persyaratan-sistem)
 - [Instalasi](#-instalasi)
-- [Penggunaan](#-penggunaan)
-- [NPM Scripts](#-npm-scripts)
-- [Author](#-author)
+- [Struktur Folder](#-struktur-folder)
+- [Penjelasan File](#-penjelasan-file)
+  - [Root Files](#root-files)
+  - [Config](#config)
+  - [Core](#core)
+  - [App/Controllers](#appcontrollers)
+  - [App/Models](#appmodels)
+  - [App/Views](#appviews)
+  - [Routes](#routes)
+  - [Public](#public)
+  - [Storage](#storage)
+  - [SQL](#sql)
+- [Cara Penggunaan](#-cara-penggunaan)
+- [API Routes](#-api-routes)
+- [Kontributor](#-kontributor)
 
 ---
 
-## 📖 Tentang Project
+## 📖 Tentang Proyek
 
-Project ini adalah sistem booking hotel **MVP (Minimum Viable Product)** yang dibangun dengan:
-
-- **Arsitektur MVC** - Memisahkan logic (Model), tampilan (View), dan kontrol (Controller)
-- **PHP Native** - Tanpa framework, cocok untuk pembelajaran
-- **Tailwind CSS** - Utility-first CSS framework untuk styling modern
-- **MySQL** - Database relasional dengan 3 tabel yang saling terhubung
+**Hotel Booking System** adalah aplikasi web untuk manajemen pemesanan hotel yang dibangun menggunakan PHP native dengan arsitektur MVC custom.  Proyek ini dibuat untuk memenuhi tugas Pemrograman Web dengan fitur lengkap untuk tamu dan admin. 
 
 ---
 
 ## ✨ Fitur
 
-| Fitur                  | Deskripsi                                              |
-| ---------------------- | ------------------------------------------------------ |
-| 🔐 **Autentikasi**     | Login, Register, Logout dengan Session                 |
-| 🔒 **Password Hash**   | Enkripsi password menggunakan bcrypt                   |
-| 👥 **Multi Role**      | Guest (user biasa) dan Admin dengan akses berbeda      |
-| 📝 **CRUD Lengkap**    | Create, Read, Update, Delete untuk semua data          |
-| 📤 **Upload File**     | Upload gambar profil user dan gambar kamar             |
-| 🔗 **Relasi Data**     | 3 tabel yang saling terhubung (users, rooms, bookings) |
-| 📊 **Admin Dashboard** | Panel admin dengan statistik, analytics, dan reports   |
-| 📈 **Analytics**       | Grafik revenue, booking trends, room popularity        |
-| 📋 **Reports**         | Laporan revenue, occupancy rate, export CSV            |
-| 📱 **Responsive**      | Tampilan responsif untuk semua ukuran layar            |
+### 👤 Fitur Tamu (Guest)
+- ✅ Registrasi dan Login
+- ✅ Lihat daftar kamar
+- ✅ Pencarian dan filter kamar
+- ✅ Booking kamar
+- ✅ Lihat riwayat pemesanan
+- ✅ Cetak invoice
+- ✅ Update profil
+
+### 🔐 Fitur Admin
+- ✅ Dashboard dengan analytics
+- ✅ Manajemen pengguna (CRUD)
+- ✅ Manajemen kamar (CRUD)
+- ✅ Manajemen booking
+- ✅ Check-in / Check-out
+- ✅ Export laporan
+- ✅ Activity log
 
 ---
 
-## 🛠 Teknologi
+## 💻 Persyaratan Sistem
 
-| Teknologi    | Versi | Fungsi                      |
-| ------------ | ----- | --------------------------- |
-| PHP          | 8.0+  | Backend server-side         |
-| MySQL        | 5.7+  | Database                    |
-| PDO          | -     | Database connection         |
-| Tailwind CSS | 3.4+  | Styling & UI                |
-| Chart.js     | 4.0+  | Grafik dan visualisasi data |
-| Node.js      | 18+   | Build tools untuk Tailwind  |
-| NPM          | 9+    | Package manager             |
+| Komponen | Versi Minimum |
+|----------|---------------|
+| PHP | 8.0+ |
+| MySQL | 5.7+ |
+| Apache | 2.4+ |
+| Node.js | 16+ (untuk Tailwind CSS) |
+| Composer | Tidak diperlukan |
+
+### Ekstensi PHP yang Dibutuhkan
+- PDO
+- PDO_MySQL
+- mbstring
+- session
 
 ---
 
-## 🏗 Arsitektur MVC
+## 🚀 Instalasi
 
+### 1. Clone Repository
+```bash
+git clone https://github.com/Rainzy21/Project-PemWeb. git
+cd Project-PemWeb
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                        ARSITEKTUR MVC                           │
-└─────────────────────────────────────────────────────────────────┘
 
-                         ┌─────────────┐
-                         │   REQUEST   │
-                         │  (Browser)  │
-                         └──────┬──────┘
-                                │
-                                ▼
-┌──────────────────────────────────────────────────────────────────┐
-│                           ROUTER                                 │
-│                        (routes/web.php)                          │
-│         Mencocokkan URL dengan Controller yang tepat             │
-└──────────────────────────────┬───────────────────────────────────┘
-                               │
-                               ▼
-┌──────────────────────────────────────────────────────────────────┐
-│                         CONTROLLER                               │
-│                    (app/Controllers/*.php)                       │
-│              Menerima request, memproses logic,                  │
-│              berkomunikasi dengan Model dan View                 │
-└───────────────┬──────────────────────────────────┬───────────────┘
-                │                                  │
-                ▼                                  ▼
-┌───────────────────────────┐      ┌───────────────────────────────┐
-│           MODEL           │      │             VIEW              │
-│    (app/Models/*.php)     │      │      (app/Views/*.php)        │
-│                           │      │                               │
-│  • Query ke Database      │      │  • Template HTML              │
-│  • Business Logic         │      │  • Menampilkan data           │
-│  • Validasi Data          │      │  • User Interface             │
-└─────────────┬─────────────┘      └───────────────┬───────────────┘
-              │                                    │
-              ▼                                    ▼
-┌───────────────────────────┐      ┌───────────────────────────────┐
-│         DATABASE          │      │          RESPONSE             │
-│          (MySQL)          │      │          (HTML/JSON)          │
-└───────────────────────────┘      └───────────────────────────────┘
+### 2.  Konfigurasi Database
+```sql
+-- Buat database
+CREATE DATABASE book_hotel;
+
+-- Import schema (jika ada)
+mysql -u root -p book_hotel < sql/schema.sql
+```
+
+### 3. Konfigurasi Aplikasi
+Edit file `config/config.php`:
+```php
+define('BASE_URL', 'http://localhost/Project-PemWeb/public/');
+define('DB_HOST', 'localhost');
+define('DB_USER', 'root');
+define('DB_PASS', '');
+define('DB_NAME', 'book_hotel');
+```
+
+### 4.  Install Dependencies (Tailwind CSS)
+```bash
+npm install
+```
+
+### 5. Jalankan Tailwind (Development)
+```bash
+npm run dev
+```
+
+### 6.  Akses Aplikasi
+Buka browser dan akses:
+```
+http://localhost/Project-PemWeb/public/
 ```
 
 ---
@@ -112,422 +126,655 @@ Project ini adalah sistem booking hotel **MVP (Minimum Viable Product)** yang di
 ## 📁 Struktur Folder
 
 ```
-hotel-booking/
+Project-PemWeb/
 │
-├── 📂 app/                          # Application Layer (MVC)
-│   ├── 📂 Controllers/              # Controller classes
-│   │   ├── 📄 AuthController.php    # Login, Register, Profile
-│   │   ├── 📄 HomeController.php    # Homepage
-│   │   ├── 📄 RoomController.php    # Public room listing
-│   │   ├── 📄 BookingController.php # User booking
-│   │   └── 📂 Admin/                # Admin controllers
-│   │       ├── 📄 DashboardController.php
-│   │       ├── 📄 RoomController.php
-│   │       ├── 📄 BookingController.php
-│   │       └── 📄 UserController.php
+├── 📄 . htaccess                    # Konfigurasi Apache (URL rewriting)
+├── 📄 README.md                    # Dokumentasi proyek
+├── 📄 package. json                 # Dependencies Node.js
+├── 📄 package-lock.json            # Lock file dependencies
+├── 📄 tailwind.config.js           # Konfigurasi Tailwind CSS
+│
+├── 📁 app/                         # Aplikasi utama (MVC)
+│   ├── 📁 Controllers/             # Controller aplikasi
+│   │   ├── 📁 Admin/               # Controller admin
+│   │   ├── 📁 Traits/              # Traits untuk controller
+│   │   ├── 📄 AuthController.php   # Autentikasi user
+│   │   ├── 📄 BookingController. php # Manajemen booking
+│   │   └── 📄 RoomController.php   # Manajemen kamar
 │   │
-│   ├── 📂 Models/                   # Model classes
-│   │   ├── 📄 User.php
-│   │   ├── 📄 Room.php
-│   │   └── 📄 Booking.php
+│   ├── 📁 Models/                  # Model database
+│   │   ├── 📁 Traits/              # Traits untuk model
+│   │   ├── 📄 Booking.php          # Model booking
+│   │   ├── 📄 Room.php             # Model kamar
+│   │   └── 📄 User.php             # Model user
 │   │
-│   └── 📂 Views/                    # View templates
-│       ├── 📂 layouts/
-│       │   ├── 📄 app.php           # Layout untuk user
-│       │   └── 📄 admin.php         # Layout untuk admin
-│       ├── 📂 auth/
-│       │   ├── 📄 login.php
-│       │   ├── 📄 register.php
-│       │   └── 📄 profile.php
-│       ├── 📂 home/
-│       │   └── 📄 index.php
-│       ├── 📂 rooms/
-│       │   ├── 📄 index.php
-│       │   └── 📄 detail.php
-│       ├── 📂 bookings/
-│       │   ├── 📄 my-bookings.php
-│       │   ├── 📄 create.php
-│       │   ├── 📄 detail.php
-│       │   └── 📄 invoice.php
-│       ├── 📂 admin/
-│       │   ├── 📂 dashboard/
-│       │   │   ├── 📄 index.php
-│       │   │   ├── 📄 analytics.php
-│       │   │   ├── 📄 reports.php
-│       │   │   ├── 📄 activity-log.php
-│       │   │   └── 📄 settings.php
-│       │   ├── 📂 rooms/
-│       │   │   ├── 📄 index.php
-│       │   │   ├── 📄 form.php
-│       │   │   └── 📄 detail.php
-│       │   ├── 📂 bookings/
-│       │   │   ├── 📄 index.php
-│       │   │   ├── 📄 detail.php
-│       │   │   ├── 📄 create.php
-│       │   │   ├── 📄 today-checkins.php
-│       │   │   ├── 📄 today-checkouts.php
-│       │   │   └── 📄 invoice.php
-│       │   └── 📂 users/
-│       │       ├── 📄 index.php
-│       │       ├── 📄 form.php
-│       │       └── 📄 detail.php
-│       ├── 📂 partials/
-│       │   ├── 📄 header.php
-│       │   ├── 📄 footer.php
-│       │   ├── 📄 navbar.php
-│       │   ├── 📄 sidebar.php
-│       │   └── 📄 flash-message.php
-│       └── 📂 errors/
-│           ├── 📄 404.php
-│           └── 📄 500.php
+│   └── 📁 Views/                   # Template view
+│       ├── 📁 admin/               # View halaman admin
+│       ├── 📁 auth/                # View login/register
+│       ├── 📁 books/               # View booking
+│       ├── 📁 home/                # View halaman utama
+│       ├── 📁 layout/              # Layout template
+│       ├── 📁 partials/            # Komponen partial
+│       └── 📁 rooms/               # View kamar
 │
-├── 📂 config/                       # Konfigurasi aplikasi
-│   ├── 📄 app.php
-│   └── 📄 database.php
+├── 📁 config/                      # Konfigurasi aplikasi
+│   └── 📄 config.php               # File konfigurasi utama
 │
-├── 📂 core/                         # Core/Engine MVC
-│   ├── 📄 App.php
-│   ├── 📄 Controller.php
-│   ├── 📄 Database.php
-│   ├── 📄 Model.php
-│   ├── 📄 View.php
-│   ├── 📄 Router.php
-│   └── 📄 Middleware.php
+├── 📁 core/                        # Framework core
+│   ├── 📄 App.php                  # Bootstrap aplikasi
+│   ├── 📄 Controller.php           # Base controller
+│   ├── 📄 Database.php             # Koneksi database
+│   ├── 📄 Model.php                # Base model
+│   ├── 📄 Router.php               # Sistem routing
+│   ├── 📄 View.php                 # View renderer
+│   └── 📁 Traits/                  # Traits framework
 │
-├── 📂 public/                       # Entry point & assets publik
-│   ├── 📄 index.php
-│   ├── 📄 .htaccess
-│   └── 📂 assets/
-│       ├── 📂 css/
-│       │   └── 📄 output.css
-│       ├── 📂 js/
-│       │   └── 📄 script.js
-│       └── 📂 images/
+├── 📁 public/                      # Document root (web accessible)
+│   ├── 📄 . htaccess                # Rewrite rules
+│   ├── 📄 index.php                # Entry point aplikasi
+│   └── 📁 asset/                   # Assets (CSS, JS, images)
 │
-├── 📂 routes/                       # Definisi routing
-│   └── 📄 web.php
+├── 📁 routes/                      # Definisi routing
+│   └── 📄 web.php                  # Routes aplikasi
 │
-├── 📂 src/                          # Source files
-│   └── 📂 css/
-│       └── 📄 input.css
+├── 📁 sql/                         # Database files
+│   └── 📄 schema.sql               # Struktur database
 │
-├── 📂 storage/                      # File storage
-│   └── 📂 uploads/
-│       ├── 📂 profiles/
-│       └── 📂 rooms/
+├── 📁 storage/                     # File storage
+│   └── 📁 uploads/                 # Upload files
 │
-├── 📂 sql/                          # Database schema
-│   └── 📄 schema.sql
-│
-├── 📄 .htaccess
-├── 📄 .gitignore
-├── 📄 package.json
-├── 📄 tailwind.config.js
-└── 📄 README.md
+└── 📁 node_modules/                # Dependencies Node.js
 ```
 
 ---
 
-## 📚 Penjelasan Detail Folder & File
+## 📝 Penjelasan File
 
-### 1. `app/Controllers/`
+### Root Files
 
-#### Public Controllers
-
-| File                    | Deskripsi           | Methods                                                                                                                                  |
-| ----------------------- | ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| `AuthController.php`    | Autentikasi user    | `login()`, `doLogin()`, `register()`, `doRegister()`, `logout()`, `profile()`, `updateProfile()`, `updatePassword()`, `forgotPassword()` |
-| `HomeController.php`    | Landing page        | `index()`                                                                                                                                |
-| `RoomController.php`    | Daftar kamar public | `index()`, `detail()`, `search()`, `types()`, `filterByType()`, `checkAvailability()`, `getInfo()`                                       |
-| `BookingController.php` | Booking oleh user   | `myBookings()`, `create()`, `store()`, `detail()`, `cancel()`, `invoice()`, `checkAvailability()`                                        |
-
-#### Admin Controllers (`app/Controllers/Admin/`)
-
-| File                      | Deskripsi             | Methods                                                                                                                                                                                        |
-| ------------------------- | --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `DashboardController.php` | Dashboard & statistik | `index()`, `analytics()`, `reports()`, `exportReport()`, `settings()`, `activityLog()`                                                                                                         |
-| `UserController.php`      | CRUD user             | `index()`, `detail()`, `create()`, `store()`, `edit()`, `update()`, `delete()`, `toggleRole()`, `resetPassword()`, `bulkAction()`, `export()`, `stats()`                                       |
-| `RoomController.php`      | CRUD kamar            | `index()`, `detail()`, `create()`, `store()`, `edit()`, `update()`, `delete()`, `toggleAvailability()`, `bulkUpdate()`, `checkAvailability()`, `stats()`                                       |
-| `BookingController.php`   | Kelola booking        | `index()`, `detail()`, `create()`, `store()`, `updateStatus()`, `confirm()`, `checkIn()`, `checkOut()`, `cancel()`, `delete()`, `todayCheckIns()`, `todayCheckOuts()`, `invoice()`, `export()` |
-
----
-
-### 2. `app/Models/`
-
-| File          | Tabel      | Methods Utama                                                                                                                                          |
-| ------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `User.php`    | `users`    | `findByEmail()`, `getGuests()`, `getAdmins()`, `hashPassword()`, `verifyPassword()`                                                                    |
-| `Room.php`    | `rooms`    | `getAvailable()`, `getStandard()`, `getDeluxe()`, `getSuite()`, `findByRoomNumber()`, `isAvailableForDates()`, `setAvailability()`                     |
-| `Booking.php` | `bookings` | `getByUser()`, `getByStatus()`, `getAllWithDetails()`, `getPending()`, `getConfirmed()`, `getTodayCheckIns()`, `getTodayCheckOuts()`, `updateStatus()` |
-
----
-
-### 3. `core/`
-
-| File             | Deskripsi                                                |
-| ---------------- | -------------------------------------------------------- |
-| `App.php`        | Bootstrap aplikasi - memuat config, routes, dan dispatch |
-| `Controller.php` | Base controller dengan helper methods                    |
-| `Database.php`   | Koneksi database dengan Singleton pattern                |
-| `Model.php`      | Base model dengan CRUD methods                           |
-| `View.php`       | Render view dengan layout support                        |
-| `Router.php`     | URL routing dengan parameter support                     |
-| `Middleware.php` | Autentikasi dan proteksi halaman                         |
-
----
-
-## 🗄 Database Schema
-
-### Entity Relationship Diagram (ERD)
-
+#### 📄 `.htaccess`
+```apache
+# Konfigurasi Apache untuk URL rewriting
+# Mengarahkan semua request ke public/index.php
 ```
-┌─────────────────────┐       ┌─────────────────────┐       ┌─────────────────────┐
-│       USERS         │       │      BOOKINGS       │       │       ROOMS         │
-├─────────────────────┤       ├─────────────────────┤       ├─────────────────────┤
-│ PK  id              │       │ PK  id              │       │ PK  id              │
-│     name            │       │ FK  user_id         │       │     room_number     │
-│     email (unique)  │──────▶│ FK  room_id         │◀──────│     room_type       │
-│     password        │  1:N  │     check_in_date   │  N:1  │     price_per_night │
-│     phone           │       │     check_out_date  │       │     description     │
-│     profile_image   │       │     total_price     │       │     image           │
-│     role            │       │     status          │       │     is_available    │
-│     created_at      │       │     created_at      │       │     created_at      │
-│     updated_at      │       │     updated_at      │       │     updated_at      │
-└─────────────────────┘       └─────────────────────┘       └─────────────────────┘
+**Fungsi:** Mengatur URL rewriting agar semua request diarahkan ke folder `public/`. 
+
+#### 📄 `package.json`
+**Fungsi:** Mendefinisikan dependencies Node.js untuk Tailwind CSS. 
+```json
+{
+  "scripts": {
+    "dev": "tailwindcss -i ./public/asset/css/input.css -o ./public/asset/css/output.css --watch",
+    "build": "tailwindcss -i ./public/asset/css/input.css -o ./public/asset/css/output. css --minify"
+  }
+}
 ```
 
-### Tabel Users
-
-| Kolom           | Tipe                   | Constraint                  | Deskripsi                  |
-| --------------- | ---------------------- | --------------------------- | -------------------------- |
-| `id`            | INT                    | PK, AUTO_INCREMENT          | ID unik user               |
-| `name`          | VARCHAR(100)           | NOT NULL                    | Nama lengkap               |
-| `email`         | VARCHAR(100)           | UNIQUE, NOT NULL            | Email (untuk login)        |
-| `password`      | VARCHAR(255)           | NOT NULL                    | Password ter-hash (bcrypt) |
-| `phone`         | VARCHAR(20)            | NULL                        | Nomor telepon              |
-| `profile_image` | VARCHAR(255)           | NULL                        | Path foto profil           |
-| `role`          | ENUM('guest', 'admin') | DEFAULT 'guest'             | Role user                  |
-| `created_at`    | TIMESTAMP              | DEFAULT CURRENT_TIMESTAMP   | Waktu dibuat               |
-| `updated_at`    | TIMESTAMP              | ON UPDATE CURRENT_TIMESTAMP | Waktu diupdate             |
-
-### Tabel Rooms
-
-| Kolom             | Tipe                                | Constraint                  | Deskripsi           |
-| ----------------- | ----------------------------------- | --------------------------- | ------------------- |
-| `id`              | INT                                 | PK, AUTO_INCREMENT          | ID unik kamar       |
-| `room_number`     | VARCHAR(10)                         | UNIQUE, NOT NULL            | Nomor kamar         |
-| `room_type`       | ENUM('standard', 'deluxe', 'suite') | NOT NULL                    | Tipe kamar          |
-| `price_per_night` | DECIMAL(10,2)                       | NOT NULL                    | Harga per malam     |
-| `description`     | TEXT                                | NULL                        | Deskripsi kamar     |
-| `image`           | VARCHAR(255)                        | NULL                        | Path gambar kamar   |
-| `is_available`    | BOOLEAN                             | DEFAULT TRUE                | Status ketersediaan |
-| `created_at`      | TIMESTAMP                           | DEFAULT CURRENT_TIMESTAMP   | Waktu dibuat        |
-| `updated_at`      | TIMESTAMP                           | ON UPDATE CURRENT_TIMESTAMP | Waktu diupdate      |
-
-### Tabel Bookings
-
-| Kolom            | Tipe          | Constraint                  | Deskripsi         |
-| ---------------- | ------------- | --------------------------- | ----------------- |
-| `id`             | INT           | PK, AUTO_INCREMENT          | ID unik booking   |
-| `user_id`        | INT           | FK → users(id)              | Relasi ke user    |
-| `room_id`        | INT           | FK → rooms(id)              | Relasi ke room    |
-| `check_in_date`  | DATE          | NOT NULL                    | Tanggal check-in  |
-| `check_out_date` | DATE          | NOT NULL                    | Tanggal check-out |
-| `total_price`    | DECIMAL(10,2) | NOT NULL                    | Total harga       |
-| `status`         | ENUM(...)     | DEFAULT 'pending'           | Status booking    |
-| `created_at`     | TIMESTAMP     | DEFAULT CURRENT_TIMESTAMP   | Waktu dibuat      |
-| `updated_at`     | TIMESTAMP     | ON UPDATE CURRENT_TIMESTAMP | Waktu diupdate    |
-
-**Status Booking:** `pending`, `confirmed`, `checked_in`, `checked_out`, `cancelled`
+#### 📄 `tailwind.config.js`
+**Fungsi:** Konfigurasi Tailwind CSS untuk styling aplikasi.
+```javascript
+module.exports = {
+  content: ["./app/Views/**/*.php"],
+  theme: { extend: {} },
+  plugins: [],
+}
+```
 
 ---
 
-## 🛣 Routes
+### Config
+
+#### 📄 `config/config.php`
+**Fungsi:** File konfigurasi utama aplikasi. 
+
+| Konstanta | Deskripsi | Contoh |
+|-----------|-----------|--------|
+| `BASE_URL` | URL dasar aplikasi | `http://localhost/Project-PemWeb/public/` |
+| `STORAGE_PATH` | Path folder storage | `__DIR__ . '/../storage'` |
+| `DB_HOST` | Host database | `localhost` |
+| `DB_USER` | Username database | `root` |
+| `DB_PASS` | Password database | `''` |
+| `DB_NAME` | Nama database | `book_hotel` |
+| `APP_NAME` | Nama aplikasi | `Hotel Booking` |
+| `APP_VERSION` | Versi aplikasi | `1.0.0` |
+| `APP_DEBUG` | Mode debug | `true` |
+| `SESSION_LIFETIME` | Durasi session (detik) | `3600` |
+| `UPLOAD_PATH` | Path upload file | `__DIR__ . '/../public/uploads/'` |
+| `MAX_FILE_SIZE` | Maksimal ukuran file | `2MB` |
+| `ALLOWED_EXTENSIONS` | Ekstensi file yang diizinkan | `['jpg', 'jpeg', 'png', 'gif']` |
+
+---
+
+### Core
+
+#### 📄 `core/App.php`
+**Fungsi:** Bootstrap aplikasi dan dispatcher utama. 
+
+```php
+namespace Core;
+
+class App
+{
+    use ParsesUrl, ResolvesApp;
+    
+    protected string $defaultController = 'Home';
+    protected string $defaultMethod = 'index';
+}
+```
+
+**Method:**
+| Method | Deskripsi |
+|--------|-----------|
+| `__construct()` | Inisialisasi aplikasi dan dispatch request |
+| `dispatch()` | Mengarahkan request ke controller yang sesuai |
+| `getController()` | Mendapatkan nama controller saat ini |
+| `getMethod()` | Mendapatkan nama method saat ini |
+| `getCurrentParams()` | Mendapatkan parameter URL |
+
+---
+
+#### 📄 `core/Controller.php`
+**Fungsi:** Base controller yang di-extend oleh semua controller. 
+
+```php
+namespace Core;
+
+class Controller
+{
+    use LoadsModels, HandlesRequest, HandlesResponse, ValidatesInput, ChecksAuth;
+    
+    protected View $view;
+    
+    protected function render(string $view, array $data = []): void;
+}
+```
+
+**Traits yang digunakan:**
+| Trait | Deskripsi |
+|-------|-----------|
+| `LoadsModels` | Memuat model |
+| `HandlesRequest` | Menangani HTTP request |
+| `HandlesResponse` | Menangani HTTP response |
+| `ValidatesInput` | Validasi input |
+| `ChecksAuth` | Cek autentikasi |
+
+---
+
+#### 📄 `core/Database.php`
+**Fungsi:** Koneksi database menggunakan PDO dengan Singleton Pattern.
+
+```php
+namespace Core;
+
+class Database
+{
+    use HasConnection, HasStatement, HasFetch, HasTransaction;
+    
+    private static ?Database $instance = null;
+    
+    public static function getInstance(): self;
+}
+```
+
+**Traits yang digunakan:**
+| Trait | Deskripsi |
+|-------|-----------|
+| `HasConnection` | Koneksi database |
+| `HasStatement` | Prepared statements |
+| `HasFetch` | Fetch data |
+| `HasTransaction` | Transaction handling |
+
+---
+
+#### 📄 `core/Model.php`
+**Fungsi:** Base model dengan operasi CRUD dasar.
+
+```php
+namespace Core;
+
+class Model
+{
+    use HasCRUD, HasQuery, HasAggregate, HasRawQuery;
+    
+    protected $db;
+    protected string $table = '';
+    protected array $fillable = [];
+}
+```
+
+**Method Bawaan:**
+| Method | Deskripsi | Return |
+|--------|-----------|--------|
+| `all()` | Ambil semua record | `array` |
+| `find($id)` | Cari berdasarkan ID | `object\|null` |
+| `findBy($column, $value)` | Cari berdasarkan kolom | `object\|null` |
+| `where($column, $value)` | Ambil semua dengan kondisi | `array` |
+| `create(array $data)` | Buat record baru | `int` (ID) |
+| `update($id, array $data)` | Update record | `bool` |
+| `delete($id)` | Hapus record | `bool` |
+| `count()` | Hitung jumlah record | `int` |
+| `raw($sql, array $params)` | Query mentah | `array` |
+
+---
+
+#### 📄 `core/Router. php`
+**Fungsi:** Sistem routing untuk mengarahkan URL ke controller.
+
+```php
+namespace Core;
+
+class Router
+{
+    use ParsesRoutes, ResolvesController, HandlesErrors;
+    
+    public function get(string $route, string $action): self;
+    public function post(string $route, string $action): self;
+    public function dispatch(string $url): void;
+}
+```
+
+**Fitur:**
+- ✅ GET dan POST routes
+- ✅ Parameter dinamis `{id}`
+- ✅ Auto routing (fallback)
+- ✅ Regex pattern matching
+
+---
+
+#### 📄 `core/View.php`
+**Fungsi:** Render template view dengan fitur lengkap. 
+
+```php
+namespace Core;
+
+class View
+{
+    public function render($view, $data = []);
+    public function setLayout($layout);
+    public function partial($view, $data = []);
+}
+```
+
+**Helper Methods:**
+| Method | Deskripsi | Contoh |
+|--------|-----------|--------|
+| `e($text)` | Escape HTML | `$this->e($name)` |
+| `url($path)` | Generate URL | `$this->url('rooms')` |
+| `asset($path)` | Asset URL | `$this->asset('css/style.css')` |
+| `flash($type)` | Flash message | `$this->flash('success')` |
+| `auth()` | Cek login | `$this->auth()` |
+| `user()` | Data user login | `$this->user()` |
+| `currency($amount)` | Format Rupiah | `$this->currency(500000)` |
+| `date($date, $format)` | Format tanggal | `$this->date('2024-01-01')` |
+| `old($key, $default)` | Old input value | `$this->old('email')` |
+
+---
+
+### Core/Traits
+
+#### 📁 `core/Traits/`
+
+| File | Deskripsi |
+|------|-----------|
+| `ChecksAuth. php` | Trait untuk cek autentikasi user |
+| `FormatsOutput.php` | Trait untuk format output (currency, date) |
+| `GeneratesUrls.php` | Trait untuk generate URL |
+| `HandlesErrors.php` | Trait untuk handle error (404, 500) |
+| `HandlesRequest.php` | Trait untuk handle HTTP request |
+| `HandlesResponse.php` | Trait untuk handle HTTP response (redirect, json) |
+| `HandlesSession.php` | Trait untuk handle session |
+| `HasAggregate.php` | Trait untuk fungsi agregat (count, sum, avg) |
+| `HasCRUD. php` | Trait untuk operasi CRUD |
+| `HasConnection.php` | Trait untuk koneksi database PDO |
+| `HasFetch.php` | Trait untuk fetch data dari database |
+| `HasQuery.php` | Trait untuk query builder |
+| `HasRawQuery.php` | Trait untuk raw SQL query |
+| `HasStatement.php` | Trait untuk prepared statements |
+| `HasTransaction.php` | Trait untuk database transaction |
+| `LoadsModels. php` | Trait untuk memuat model |
+| `ParsesRoutes.php` | Trait untuk parsing routes |
+| `ParsesUrl.php` | Trait untuk parsing URL |
+| `RendersViews.php` | Trait untuk render views |
+| `ResolvesApp.php` | Trait untuk resolve controller dan method |
+| `ResolvesController.php` | Trait untuk resolve controller class |
+| `ValidatesInput.php` | Trait untuk validasi input |
+
+---
+
+### App/Controllers
+
+#### 📄 `app/Controllers/AuthController.php`
+**Fungsi:** Menangani autentikasi user (login, register, logout, profile).
+
+**Methods:**
+| Method | Route | Deskripsi |
+|--------|-------|-----------|
+| `login()` | GET `/login` | Tampilkan form login |
+| `doLogin()` | POST `/login` | Proses login |
+| `register()` | GET `/register` | Tampilkan form register |
+| `doRegister()` | POST `/register` | Proses registrasi |
+| `logout()` | GET `/logout` | Logout user |
+| `profile()` | GET `/profile` | Tampilkan profil |
+| `updateProfile()` | POST `/profile/update` | Update profil |
+| `updatePassword()` | POST `/profile/password` | Ganti password |
+| `forgotPassword()` | GET `/forgot-password` | Form lupa password |
+| `doForgotPassword()` | POST `/forgot-password` | Proses reset password |
+
+---
+
+#### 📄 `app/Controllers/BookingController.php`
+**Fungsi:** Menangani pemesanan kamar oleh user.
+
+**Methods:**
+| Method | Route | Deskripsi |
+|--------|-------|-----------|
+| `myBookings()` | GET `/my-bookings` | Daftar booking user |
+| `create($id)` | GET `/booking/create/{id}` | Form booking |
+| `store()` | POST `/booking/store` | Simpan booking |
+| `detail($id)` | GET `/booking/detail/{id}` | Detail booking |
+| `cancel($id)` | GET `/booking/cancel/{id}` | Batalkan booking |
+| `invoice($id)` | GET `/booking/invoice/{id}` | Cetak invoice |
+| `checkAvailability()` | POST `/booking/check-availability` | Cek ketersediaan |
+
+---
+
+#### 📄 `app/Controllers/RoomController.php`
+**Fungsi:** Menampilkan daftar dan detail kamar. 
+
+**Methods:**
+| Method | Route | Deskripsi |
+|--------|-------|-----------|
+| `index()` | GET `/rooms` | Daftar semua kamar |
+| `detail($id)` | GET `/rooms/{id}` | Detail kamar |
+| `search()` | GET `/rooms/search` | Pencarian kamar |
+| `types()` | GET `/rooms/types` | Daftar tipe kamar |
+| `filterByType()` | GET `/rooms/filter` | Filter berdasarkan tipe |
+| `getInfo($id)` | GET `/rooms/info/{id}` | Info kamar (AJAX) |
+| `checkAvailability($id)` | GET `/rooms/availability/{id}` | Cek ketersediaan |
+
+---
+
+#### 📁 `app/Controllers/Admin/`
+**Fungsi:** Controller untuk panel admin.
+
+| Controller | Deskripsi |
+|------------|-----------|
+| `AdminDashboardController. php` | Dashboard, analytics, reports |
+| `AdminUserController.php` | Manajemen user |
+| `AdminRoomController.php` | Manajemen kamar |
+| `AdminBookingController.php` | Manajemen booking |
+
+---
+
+### App/Models
+
+#### 📄 `app/Models/User.php`
+**Fungsi:** Model untuk tabel users.
+
+```php
+namespace App\Models;
+
+class User extends \Core\Model
+{
+    protected string $table = 'users';
+    protected array $fillable = ['name', 'email', 'password', 'phone', 'role'];
+}
+```
+
+---
+
+#### 📄 `app/Models/Room.php`
+**Fungsi:** Model untuk tabel rooms/kamar.
+
+```php
+namespace App\Models;
+
+class Room extends \Core\Model
+{
+    protected string $table = 'rooms';
+    protected array $fillable = ['name', 'type', 'price', 'capacity', 'description', 'image', 'is_available'];
+}
+```
+
+---
+
+#### 📄 `app/Models/Booking.php`
+**Fungsi:** Model untuk tabel bookings/pemesanan.
+
+```php
+namespace App\Models;
+
+class Booking extends \Core\Model
+{
+    protected string $table = 'bookings';
+    protected array $fillable = ['user_id', 'room_id', 'check_in', 'check_out', 'total_price', 'status'];
+}
+```
+
+---
+
+### App/Views
+
+#### 📁 `app/Views/`
+
+| Folder | Deskripsi |
+|--------|-----------|
+| `admin/` | View untuk halaman admin (dashboard, users, rooms, bookings) |
+| `auth/` | View untuk login, register, forgot password |
+| `books/` | View untuk booking (create, detail, my-bookings, invoice) |
+| `home/` | View untuk halaman utama |
+| `layout/` | Template layout (header, footer, sidebar) |
+| `partials/` | Komponen reusable (alerts, pagination, modal) |
+| `rooms/` | View untuk daftar dan detail kamar |
+
+---
+
+### Routes
+
+#### 📄 `routes/web. php`
+**Fungsi:** Mendefinisikan semua route aplikasi. 
+
+**Public Routes:**
+```php
+$router->get('', 'HomeController@index');
+$router->get('login', 'AuthController@login');
+$router->post('login', 'AuthController@doLogin');
+$router->get('register', 'AuthController@register');
+$router->get('rooms', 'RoomController@index');
+$router->get('rooms/{id}', 'RoomController@detail');
+```
+
+**Protected Routes (Requires Login):**
+```php
+$router->get('my-bookings', 'BookingController@myBookings');
+$router->get('booking/create/{id}', 'BookingController@create');
+$router->get('profile', 'AuthController@profile');
+```
+
+**Admin Routes:**
+```php
+$router->get('admin', 'AdminDashboardController@index');
+$router->get('admin/users', 'AdminUserController@index');
+$router->get('admin/rooms', 'AdminRoomController@index');
+$router->get('admin/bookings', 'AdminBookingController@index');
+```
+
+---
+
+### Public
+
+#### 📄 `public/index.php`
+**Fungsi:** Entry point aplikasi (front controller).
+
+```php
+<? php
+session_start();
+
+// Load config
+require_once __DIR__ . '/../config/config.php';
+
+// Autoload dengan namespace
+spl_autoload_register(function ($class) {
+    // Mapping namespace ke direktori
+    $namespaceMap = [
+        'Core\\Traits\\' => '/core/Traits/',
+        'Core\\' => '/core/',
+        'App\\Controllers\\' => '/app/controllers/',
+        'App\\Models\\Traits\\' => '/app/models/Traits/',
+        'App\\Models\\' => '/app/models/'
+    ];
+    // ... 
+});
+
+// Initialize App
+$app = new Core\App();
+```
+
+#### 📄 `public/. htaccess`
+**Fungsi:** URL rewriting untuk clean URL.
+
+```apache
+RewriteEngine On
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(. *)$ index.php?url=$1 [QSA,L]
+```
+
+#### 📁 `public/asset/`
+**Fungsi:** Folder untuk assets publik (CSS, JavaScript, Images).
+
+---
+
+### Storage
+
+#### 📁 `storage/uploads/`
+**Fungsi:** Menyimpan file yang diupload user (foto profil, gambar kamar). 
+
+---
+
+### SQL
+
+#### 📄 `sql/schema.sql`
+**Fungsi:** File SQL untuk struktur database.
+
+---
+
+## 🔧 Cara Penggunaan
+
+### Membuat Controller Baru
+```php
+<? php
+// app/Controllers/ExampleController.php
+
+namespace App\Controllers;
+
+use Core\Controller;
+
+class ExampleController extends Controller
+{
+    public function index()
+    {
+        $data = ['title' => 'Example Page'];
+        $this->render('example/index', $data);
+    }
+}
+```
+
+### Membuat Model Baru
+```php
+<?php
+// app/Models/Example.php
+
+namespace App\Models;
+
+use Core\Model;
+
+class Example extends Model
+{
+    protected string $table = 'examples';
+    protected array $fillable = ['name', 'description'];
+}
+```
+
+### Membuat View Baru
+```php
+<!-- app/Views/example/index. php -->
+<! DOCTYPE html>
+<html>
+<head>
+    <title><?= $title ?></title>
+</head>
+<body>
+    <h1><?= $title ?></h1>
+</body>
+</html>
+```
+
+### Menambah Route Baru
+```php
+// routes/web.php
+$router->get('example', 'ExampleController@index');
+$router->post('example/store', 'ExampleController@store');
+$router->get('example/{id}', 'ExampleController@show');
+```
+
+---
+
+## 🛣️ API Routes
 
 ### Public Routes
+| Method | URL | Controller | Deskripsi |
+|--------|-----|------------|-----------|
+| GET | `/` | HomeController@index | Halaman utama |
+| GET | `/login` | AuthController@login | Form login |
+| POST | `/login` | AuthController@doLogin | Proses login |
+| GET | `/register` | AuthController@register | Form register |
+| POST | `/register` | AuthController@doRegister | Proses register |
+| GET | `/logout` | AuthController@logout | Logout |
+| GET | `/rooms` | RoomController@index | Daftar kamar |
+| GET | `/rooms/{id}` | RoomController@detail | Detail kamar |
 
-| Method | URL                | Controller@Method               | Deskripsi            |
-| ------ | ------------------ | ------------------------------- | -------------------- |
-| GET    | `/`                | HomeController@index            | Homepage             |
-| GET    | `/home`            | HomeController@index            | Homepage             |
-| GET    | `/login`           | AuthController@login            | Form login           |
-| POST   | `/login`           | AuthController@doLogin          | Proses login         |
-| GET    | `/register`        | AuthController@register         | Form register        |
-| POST   | `/register`        | AuthController@doRegister       | Proses register      |
-| GET    | `/logout`          | AuthController@logout           | Logout               |
-| GET    | `/forgot-password` | AuthController@forgotPassword   | Form lupa password   |
-| POST   | `/forgot-password` | AuthController@doForgotPassword | Proses lupa password |
+### User Routes (Requires Login)
+| Method | URL | Controller | Deskripsi |
+|--------|-----|------------|-----------|
+| GET | `/profile` | AuthController@profile | Profil user |
+| POST | `/profile/update` | AuthController@updateProfile | Update profil |
+| GET | `/my-bookings` | BookingController@myBookings | Daftar booking |
+| GET | `/booking/create/{id}` | BookingController@create | Form booking |
+| POST | `/booking/store` | BookingController@store | Simpan booking |
+| GET | `/booking/detail/{id}` | BookingController@detail | Detail booking |
+| GET | `/booking/cancel/{id}` | BookingController@cancel | Batalkan booking |
+| GET | `/booking/invoice/{id}` | BookingController@invoice | Cetak invoice |
 
-### Profile Routes (Requires Login)
-
-| Method | URL                 | Controller@Method             | Deskripsi       |
-| ------ | ------------------- | ----------------------------- | --------------- |
-| GET    | `/profile`          | AuthController@profile        | Halaman profil  |
-| POST   | `/profile/update`   | AuthController@updateProfile  | Update profil   |
-| POST   | `/profile/password` | AuthController@updatePassword | Update password |
-
-### Room Routes (Public)
-
-| Method | URL                        | Controller@Method                | Deskripsi         |
-| ------ | -------------------------- | -------------------------------- | ----------------- |
-| GET    | `/rooms`                   | RoomController@index             | Daftar kamar      |
-| GET    | `/rooms/search`            | RoomController@search            | Cari kamar        |
-| GET    | `/rooms/types`             | RoomController@types             | Daftar tipe kamar |
-| GET    | `/rooms/filter`            | RoomController@filterByType      | Filter by tipe    |
-| GET    | `/rooms/{id}`              | RoomController@detail            | Detail kamar      |
-| GET    | `/rooms/info/{id}`         | RoomController@getInfo           | Info kamar (AJAX) |
-| GET    | `/rooms/availability/{id}` | RoomController@checkAvailability | Cek ketersediaan  |
-
-### Booking Routes (Requires Login)
-
-| Method | URL                           | Controller@Method                   | Deskripsi           |
-| ------ | ----------------------------- | ----------------------------------- | ------------------- |
-| GET    | `/my-bookings`                | BookingController@myBookings        | Daftar booking user |
-| POST   | `/booking/check-availability` | BookingController@checkAvailability | Cek ketersediaan    |
-| GET    | `/booking/create/{id}`        | BookingController@create            | Form booking        |
-| POST   | `/booking/store`              | BookingController@store             | Simpan booking      |
-| GET    | `/booking/detail/{id}`        | BookingController@detail            | Detail booking      |
-| GET    | `/booking/cancel/{id}`        | BookingController@cancel            | Batalkan booking    |
-| GET    | `/booking/invoice/{id}`       | BookingController@invoice           | Print invoice       |
-
-### Admin Dashboard Routes
-
-| Method | URL                     | Controller@Method                      | Deskripsi    |
-| ------ | ----------------------- | -------------------------------------- | ------------ |
-| GET    | `/admin`                | Admin\DashboardController@index        | Dashboard    |
-| GET    | `/admin/dashboard`      | Admin\DashboardController@index        | Dashboard    |
-| GET    | `/admin/analytics`      | Admin\DashboardController@analytics    | Analytics    |
-| GET    | `/admin/reports`        | Admin\DashboardController@reports      | Reports      |
-| GET    | `/admin/reports/export` | Admin\DashboardController@exportReport | Export CSV   |
-| GET    | `/admin/settings`       | Admin\DashboardController@settings     | Settings     |
-| GET    | `/admin/activity-log`   | Admin\DashboardController@activityLog  | Activity log |
-
-### Admin User Routes
-
-| Method | URL                                | Controller@Method                  | Deskripsi        |
-| ------ | ---------------------------------- | ---------------------------------- | ---------------- |
-| GET    | `/admin/users`                     | Admin\UserController@index         | Daftar user      |
-| GET    | `/admin/users/create`              | Admin\UserController@create        | Form tambah      |
-| POST   | `/admin/users/store`               | Admin\UserController@store         | Simpan user      |
-| GET    | `/admin/users/export`              | Admin\UserController@export        | Export CSV       |
-| GET    | `/admin/users/stats`               | Admin\UserController@stats         | Statistik (AJAX) |
-| POST   | `/admin/users/bulk-action`         | Admin\UserController@bulkAction    | Bulk action      |
-| GET    | `/admin/users/{id}`                | Admin\UserController@detail        | Detail user      |
-| GET    | `/admin/users/{id}/edit`           | Admin\UserController@edit          | Form edit        |
-| POST   | `/admin/users/{id}/update`         | Admin\UserController@update        | Update user      |
-| POST   | `/admin/users/{id}/reset-password` | Admin\UserController@resetPassword | Reset password   |
-| GET    | `/admin/users/{id}/delete`         | Admin\UserController@delete        | Hapus user       |
-| GET    | `/admin/users/{id}/toggle-role`    | Admin\UserController@toggleRole    | Toggle role      |
-
-### Admin Room Routes
-
-| Method | URL                        | Controller@Method                       | Deskripsi        |
-| ------ | -------------------------- | --------------------------------------- | ---------------- |
-| GET    | `/admin/rooms`             | Admin\RoomController@index              | Daftar kamar     |
-| GET    | `/admin/rooms/create`      | Admin\RoomController@create             | Form tambah      |
-| POST   | `/admin/rooms/store`       | Admin\RoomController@store              | Simpan kamar     |
-| GET    | `/admin/rooms/stats`       | Admin\RoomController@stats              | Statistik (AJAX) |
-| POST   | `/admin/rooms/bulk-update` | Admin\RoomController@bulkUpdate         | Bulk update      |
-| GET    | `/admin/rooms/{id}`        | Admin\RoomController@detail             | Detail kamar     |
-| GET    | `/admin/rooms/{id}/edit`   | Admin\RoomController@edit               | Form edit        |
-| POST   | `/admin/rooms/{id}/update` | Admin\RoomController@update             | Update kamar     |
-| GET    | `/admin/rooms/{id}/delete` | Admin\RoomController@delete             | Hapus kamar      |
-| GET    | `/admin/rooms/{id}/toggle` | Admin\RoomController@toggleAvailability | Toggle status    |
-| GET    | `/admin/rooms/{id}/check`  | Admin\RoomController@checkAvailability  | Cek ketersediaan |
-
-### Admin Booking Routes
-
-| Method | URL                               | Controller@Method                      | Deskripsi          |
-| ------ | --------------------------------- | -------------------------------------- | ------------------ |
-| GET    | `/admin/bookings`                 | Admin\BookingController@index          | Daftar booking     |
-| GET    | `/admin/bookings/create`          | Admin\BookingController@create         | Form tambah        |
-| POST   | `/admin/bookings/store`           | Admin\BookingController@store          | Simpan booking     |
-| GET    | `/admin/bookings/export`          | Admin\BookingController@export         | Export CSV         |
-| GET    | `/admin/bookings/today-checkins`  | Admin\BookingController@todayCheckIns  | Check-in hari ini  |
-| GET    | `/admin/bookings/today-checkouts` | Admin\BookingController@todayCheckOuts | Check-out hari ini |
-| GET    | `/admin/bookings/{id}`            | Admin\BookingController@detail         | Detail booking     |
-| POST   | `/admin/bookings/{id}/status`     | Admin\BookingController@updateStatus   | Update status      |
-| GET    | `/admin/bookings/{id}/confirm`    | Admin\BookingController@confirm        | Konfirmasi         |
-| GET    | `/admin/bookings/{id}/checkin`    | Admin\BookingController@checkIn        | Check-in           |
-| GET    | `/admin/bookings/{id}/checkout`   | Admin\BookingController@checkOut       | Check-out          |
-| GET    | `/admin/bookings/{id}/cancel`     | Admin\BookingController@cancel         | Batalkan           |
-| GET    | `/admin/bookings/{id}/delete`     | Admin\BookingController@delete         | Hapus              |
-| GET    | `/admin/bookings/{id}/invoice`    | Admin\BookingController@invoice        | Print invoice      |
+### Admin Routes
+| Method | URL | Controller | Deskripsi |
+|--------|-----|------------|-----------|
+| GET | `/admin` | AdminDashboardController@index | Dashboard |
+| GET | `/admin/users` | AdminUserController@index | Daftar user |
+| GET | `/admin/users/create` | AdminUserController@create | Form tambah user |
+| GET | `/admin/rooms` | AdminRoomController@index | Daftar kamar |
+| GET | `/admin/rooms/create` | AdminRoomController@create | Form tambah kamar |
+| GET | `/admin/bookings` | AdminBookingController@index | Daftar booking |
+| GET | `/admin/bookings/{id}/confirm` | AdminBookingController@confirm | Konfirmasi booking |
+| GET | `/admin/bookings/{id}/checkin` | AdminBookingController@checkIn | Check-in |
+| GET | `/admin/bookings/{id}/checkout` | AdminBookingController@checkOut | Check-out |
 
 ---
 
-## 🚀 Instalasi
+## 👥 Kontributor
 
-### Prasyarat
-
-- PHP 8.0+
-- MySQL 5.7+
-- Node.js 18+
-- NPM 9+
-- Apache dengan mod_rewrite
-
-### Langkah Instalasi
-
-```bash
-# 1. Clone repository
-git clone https://github.com/username/hotel-booking.git
-cd hotel-booking
-
-# 2. Install dependencies NPM
-npm install
-
-# 3. Build Tailwind CSS
-npm run build
-
-# 4. Import database
-mysql -u root -p < sql/schema.sql
-
-# 5. Konfigurasi database (edit config/database.php)
-# 6. Konfigurasi URL (edit config/app.php)
-
-# 7. Set permission folder upload
-chmod -R 755 storage/uploads/
-
-# 8. Jalankan aplikasi
-# Via XAMPP: akses http://localhost/hotel-booking
-# Via PHP server: php -S localhost:8000 -t public
-```
+| Nama | Role |
+|------|------|
+| Rainzy21 | Developer |
 
 ---
 
-## 👤 Penggunaan
+## 📄 Lisensi
 
-### Akun Default
-
-| Role  | Email           | Password |
-| ----- | --------------- | -------- |
-| Admin | admin@hotel.com | admin123 |
-| Guest | guest@hotel.com | guest123 |
-
-### Alur Guest
-
-```
-Register → Login → Lihat Kamar → Booking → Cek Booking → Logout
-```
-
-### Alur Admin
-
-```
-Login → Dashboard → Kelola Users/Rooms/Bookings → Analytics/Reports → Logout
-```
+Proyek ini dibuat untuk keperluan akademik - Tugas Pemrograman Web. 
 
 ---
 
-## 📜 NPM Scripts
-
-| Script       | Command              | Deskripsi                 |
-| ------------ | -------------------- | ------------------------- |
-| `dev`        | `npm run dev`        | Watch mode - auto compile |
-| `build`      | `npm run build`      | Build CSS sekali          |
-| `build:prod` | `npm run build:prod` | Build CSS minified        |
-
----
-
-## 👨‍💻 Author
-
-Dibuat dengan ❤️ untuk pembelajaran PHP Native MVC.
+<p align="center">
+  Made with ❤️ by <a href="https://github.com/Rainzy21">Rainzy21</a>
+</p>

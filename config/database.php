@@ -2,7 +2,7 @@
 
 return [
     'host' => 'localhost',
-    'database' => 'your_database',
+    'database' => 'book_hotel',
     'username' => 'root',
     'password' => '',
     'charset' => 'utf8mb4',

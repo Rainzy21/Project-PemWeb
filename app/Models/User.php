@@ -3,85 +3,87 @@
 namespace App\Models;
 
 use Core\Model;
-use Core\Database;
 
 class User extends Model
 {
-    protected static $table = "users";
+    protected $table = 'users';
+    protected $fillable = ['name', 'email', 'password_hash', 'phone', 'profile_image', 'role'];
 
-    #ambil semua user
-    public static function all()
+    /**
+     * Register user baru
+     */
+    public function register(array $data)
     {
-        $db = Database::getInstance();
-        $query = $db->query("SELECT * FROM " . self::$table . " ORDER BY id DESC");
-
-        return $query->fetchALL();
+        $data['password_hash'] = password_hash($data['password'], PASSWORD_DEFAULT);
+        unset($data['password']); // Hapus password plain
+        $data['role'] = $data['role'] ?? 'guest';
+        
+        return $this->create($data);
     }
 
-    #ambil satu user berdasarkan ID
-    public static function find($id)
+    /**
+     * Login - cari user berdasarkan email
+     */
+    public function findByEmail($email)
     {
-        $db = Database::getInstance();
-        $query = $db->prepare("SELECT * FROM " . self::$table . " WHERE id = ?");
-        $query->execute([$id]);
-
-        return $query->fetch();
+        return $this->findBy('email', $email);
     }
 
-    #ambil user berdasarkan email
-    public static function findByEmail($email)
+    /**
+     * Verify password
+     */
+    public function verifyPassword($password, $hashedPassword)
     {
-        $db = Database::getInstance();
-        $query = $db->prepare("SELECT * FROM " . self::$table . " WHERE email = ?");
-        $query->execute([$email]);
+        return password_verify($password, $hashedPassword);
+    }
 
-        return $query->fetch();
-    } 
+    /**
+     * Cek email sudah ada atau belum
+     */
+    public function emailExists($email)
+    {
+        return $this->findByEmail($email) !== false;
+    }
 
-    #tambah user
-    public static function create($data)
-    { 
-        $db = Database::getInstance();
-
-        $query = $db->prepare("
-            INSERT INTO " . self::$table . " (name, email, password, role)
-            VALUES (?, ?, ?, ?)
-        ");
-
-        return $query->execute([
-            $data['name'],
-            $data['email'],
-            $data['password'],
-            $data['role']
+    /**
+     * Update password
+     */
+    public function updatePassword($id, $newPassword)
+    {
+        return $this->update($id, [
+            'password_hash' => password_hash($newPassword, PASSWORD_DEFAULT)
         ]);
     }
 
-    #update user
-    public static function updateData($id, $data)
+    /**
+     * Get users by role
+     */
+    public function getByRole($role)
     {
-        $db = Database::getInstance();
-
-        $query = $db->prepare("
-            UPDATE " . self::$table . "
-            SET name = ?, email = ?, password = ?, role = ?
-            WHERE id = ?
-        ");
-
-        return $query->execute([
-            $data['name'],
-            $data['email'],
-            $data['password'],
-            $data['role'],
-            $id
-        ]);
+        return $this->where('role', $role);
     }
 
-    #hapus user
-    public static function delete($id)
+    /**
+     * Get all admins
+     */
+    public function getAdmins()
     {
-        $db = Database::getInstance();
+        return $this->getByRole('admin');
+    }
 
-        $query = $db->prepare("DELETE FROM " . self::$table . " WHERE id = ?");
-        return $query->execute([$id]);
+    /**
+     * Get all guests
+     */
+    public function getGuests()
+    {
+        return $this->getByRole('guest');
+    }
+
+    /**
+     * Update profile image
+     */
+    public function updateProfileImage($id, $imagePath)
+    {
+        return $this->update($id, ['profile_image' => $imagePath]);
     }
 }

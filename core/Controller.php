@@ -20,6 +20,9 @@ class Controller
         $modelClass = "App\\Models\\{$modelName}";
         
         if (!isset($this->models[$modelName])) {
+            if (!class_exists($modelClass)) {
+                throw new \Exception("Model {$modelName} not found");
+            }
             $this->models[$modelName] = new $modelClass();
         }
         
@@ -39,6 +42,10 @@ class Controller
      */
     protected function redirect($url)
     {
+        // Support relative URL dengan BASE_URL
+        if (strpos($url, 'http') !== 0) {
+            $url = BASE_URL . ltrim($url, '/');
+        }
         header("Location: {$url}");
         exit;
     }
@@ -118,6 +125,36 @@ class Controller
         
         if ($rule === 'email' && !filter_var($value, FILTER_VALIDATE_EMAIL)) {
             $errors[$field] = "{$field} must be a valid email";
+        }
+    }
+
+    /**
+     * Set flash message untuk notifikasi
+     */
+    protected function setFlash($type, $message)
+    {
+        $_SESSION['flash'] = [
+            'type' => $type,
+            'message' => $message
+        ];
+    }
+
+    /**
+     * Check if user is logged in
+     */
+    protected function isLoggedIn()
+    {
+        return isset($_SESSION['user_id']);
+    }
+
+    /**
+     * Require login - redirect if not authenticated
+     */
+    protected function requireLogin()
+    {
+        if (!$this->isLoggedIn()) {
+            $this->setFlash('error', 'Please login first');
+            $this->redirect('auth/login');
         }
     }
 }

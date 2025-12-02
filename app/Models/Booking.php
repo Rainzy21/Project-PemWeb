@@ -3,97 +3,184 @@
 namespace App\Models;
 
 use Core\Model;
-use Core\Database;
 
 class Booking extends Model
 {
-    protected static $table = "bookings";
+    protected $table = 'bookings';
+    protected $fillable = ['user_id', 'room_id', 'check_in_date', 'check_out_date', 'total_price', 'status'];
 
-    #ambil semua booking dan join user beserta room
-    public static function all()
+    /**
+     * Create booking with price calculation
+     */
+    public function createBooking($userId, $roomId, $checkIn, $checkOut, $pricePerNight)
     {
-        $db = Database::getInstance();
+        $nights = $this->calculateNights($checkIn, $checkOut);
+        $totalPrice = $nights * $pricePerNight;
 
-        $sql = "
-            SELECT b.*, u.name AS user_name, r.room_name
-            FROM bookings b
-            LEFT JOIN users u ON u.id = b.user_id
-            LEFT JOIN rooms r ON r.id = b.room_id
-            ORDER BY b.id DESC
-        ";
-
-        $query = $db->query($sql);
-        return $query->fetchAll();
-    }
-
-    #ambil booking berdasarkan ID
-    public static function find($id)
-    {
-        $db = Database::getInstance();
-
-        $sql = "
-            SELECT b.*, u.name AS user_name, r.room_name
-            FROM bookings b
-            LEFT JOIN users u ON u.id = b.user_id
-            LEFT JOIN rooms r ON r.id = b.room_id
-            WHERE b.id = ?
-        ";
-
-        $query = $db->prepare($sql);
-        $query->execute([$id]);
-        return $query->fetch();
-    }
-
-    #tambah booking
-    public static function create($data)
-    {
-        $db = Database::getInstance();
-
-        $query = $db->prepare("
-            INSERT INTO " . self::$table . "
-            (user_id, room_id, check_in, check_out, status, total_price)
-            VALUES (?, ?, ?, ?, ?, ?)
-        ");
-
-        return $query->execute([
-            $data['user_id'],
-            $data['room_id'],
-            $data['check_in'],
-            $data['check_out'],
-            $data['status'],
-            $data['total_price']
-        ]);        
-    }
-
-    #update booking
-    public static function updateData($id, $data)
-    {
-        $db = Database::getInstance();
-
-        $query = $db->prepare("
-            UPDATE " . self::$table . "
-            SET user_id = ?, room_id = ?, check_in = ?, check_out = ?, status = ?, total_price = ?
-            WHERE id = ?
-        ");
-
-        return $query->execute([
-            $data['user_id'],
-            $data['room_id'],
-            $data['check_in'],
-            $data['check_out'],
-            $data['status'],
-            $data['total_price'],
-            $id
+        return $this->create([
+            'user_id' => $userId,
+            'room_id' => $roomId,
+            'check_in_date' => $checkIn,
+            'check_out_date' => $checkOut,
+            'total_price' => $totalPrice,
+            'status' => 'pending'
         ]);
     }
 
-
-    #hapus booking
-    public static function delete($id)
+    /**
+     * Calculate nights between dates
+     */
+    public function calculateNights($checkIn, $checkOut)
     {
-        $db = Database::getInstance();
+        $date1 = new \DateTime($checkIn);
+        $date2 = new \DateTime($checkOut);
+        return $date1->diff($date2)->days;
+    }
 
-        $query = $db->prepare("DELETE FROM " . self::$table . " WHERE id = ?");
-        return $query->execute([$id]);
+    /**
+     * Get bookings by user
+     */
+    public function getByUser($userId)
+    {
+        return $this->db->query("SELECT b.*, r.room_number, r.room_type, r.image 
+                                 FROM {$this->table} b
+                                 JOIN rooms r ON b.room_id = r.id
+                                 WHERE b.user_id = :user_id
+                                 ORDER BY b.created_at DESC")
+                        ->bind(':user_id', $userId)
+                        ->resultSet();
+    }
+
+    /**
+     * Get bookings by status
+     */
+    public function getByStatus($status)
+    {
+        return $this->where('status', $status);
+    }
+
+    /**
+     * Get pending bookings
+     */
+    public function getPending()
+    {
+        return $this->getByStatus('pending');
+    }
+
+    /**
+     * Get confirmed bookings
+     */
+    public function getConfirmed()
+    {
+        return $this->getByStatus('confirmed');
+    }
+
+    /**
+     * Update booking status
+     */
+    public function updateStatus($id, $status)
+    {
+        $validStatus = ['pending', 'confirmed', 'checked_in', 'checked_out', 'cancelled'];
+        
+        if (!in_array($status, $validStatus)) {
+            return false;
+        }
+
+        return $this->update($id, ['status' => $status]);
+    }
+
+    /**
+     * Confirm booking
+     */
+    public function confirm($id)
+    {
+        return $this->updateStatus($id, 'confirmed');
+    }
+
+    /**
+     * Check in
+     */
+    public function checkIn($id)
+    {
+        return $this->updateStatus($id, 'checked_in');
+    }
+
+    /**
+     * Check out
+     */
+    public function checkOut($id)
+    {
+        return $this->updateStatus($id, 'checked_out');
+    }
+
+    /**
+     * Cancel booking
+     */
+    public function cancel($id)
+    {
+        return $this->updateStatus($id, 'cancelled');
+    }
+
+    /**
+     * Get booking with details
+     */
+    public function getWithDetails($id)
+    {
+        return $this->db->query("SELECT b.*, 
+                                        u.name as guest_name, u.email as guest_email, u.phone as guest_phone,
+                                        r.room_number, r.room_type, r.price_per_night, r.image as room_image
+                                 FROM {$this->table} b
+                                 JOIN users u ON b.user_id = u.id
+                                 JOIN rooms r ON b.room_id = r.id
+                                 WHERE b.id = :id")
+                        ->bind(':id', $id)
+                        ->single();
+    }
+
+    /**
+     * Get all bookings with details (for admin)
+     */
+    public function getAllWithDetails()
+    {
+        return $this->db->query("SELECT b.*, 
+                                        u.name as guest_name, u.email as guest_email,
+                                        r.room_number, r.room_type
+                                 FROM {$this->table} b
+                                 JOIN users u ON b.user_id = u.id
+                                 JOIN rooms r ON b.room_id = r.id
+                                 ORDER BY b.created_at DESC")
+                        ->resultSet();
+    }
+
+    /**
+     * Get today's check-ins
+     */
+    public function getTodayCheckIns()
+    {
+        $today = date('Y-m-d');
+        return $this->db->query("SELECT b.*, u.name as guest_name, r.room_number
+                                 FROM {$this->table} b
+                                 JOIN users u ON b.user_id = u.id
+                                 JOIN rooms r ON b.room_id = r.id
+                                 WHERE b.check_in_date = :today
+                                 AND b.status = 'confirmed'")
+                        ->bind(':today', $today)
+                        ->resultSet();
+    }
+
+    /**
+     * Get today's check-outs
+     */
+    public function getTodayCheckOuts()
+    {
+        $today = date('Y-m-d');
+        return $this->db->query("SELECT b.*, u.name as guest_name, r.room_number
+                                 FROM {$this->table} b
+                                 JOIN users u ON b.user_id = u.id
+                                 JOIN rooms r ON b.room_id = r.id
+                                 WHERE b.check_out_date = :today
+                                 AND b.status = 'checked_in'")
+                        ->bind(':today', $today)
+                        ->resultSet();
     }
 }

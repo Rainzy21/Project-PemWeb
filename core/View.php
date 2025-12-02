@@ -4,15 +4,22 @@ namespace Core;
 
 class View
 {
-    protected $viewPath = __DIR__ . '/../app/Views/';
+    protected $viewPath;
     protected $data = [];
+    protected $layout = null;
+    protected $content = '';
+
+    public function __construct()
+    {
+        $this->viewPath = dirname(__DIR__) . '/app/views/';
+    }
 
     /**
      * Render view file
      */
     public function render($view, $data = [])
     {
-        $this->data = $data;
+        $this->data = array_merge($this->data, $data);
         
         $filePath = $this->viewPath . str_replace('.', '/', $view) . '.php';
         
@@ -20,10 +27,42 @@ class View
             throw new \Exception("View file not found: {$filePath}");
         }
         
-        extract($data);
+        extract($this->data);
         ob_start();
         include $filePath;
-        return ob_get_clean();
+        $content = ob_get_clean();
+
+        // Jika ada layout, wrap content dengan layout
+        if ($this->layout) {
+            $this->content = $content;
+            $layoutPath = $this->viewPath . 'layouts/' . $this->layout . '.php';
+            
+            if (file_exists($layoutPath)) {
+                ob_start();
+                include $layoutPath;
+                $content = ob_get_clean();
+            }
+            $this->layout = null;
+        }
+
+        echo $content;
+    }
+
+    /**
+     * Set layout
+     */
+    public function setLayout($layout)
+    {
+        $this->layout = $layout;
+        return $this;
+    }
+
+    /**
+     * Get content for layout
+     */
+    public function content()
+    {
+        return $this->content;
     }
 
     /**
@@ -37,17 +76,24 @@ class View
     /**
      * Include partial/component
      */
-    public function include($view, $data = [])
+    public function partial($view, $data = [])
     {
-        echo $this->render($view, array_merge($this->data, $data));
+        $filePath = $this->viewPath . 'partials/' . str_replace('.', '/', $view) . '.php';
+        
+        if (!file_exists($filePath)) {
+            throw new \Exception("Partial not found: {$filePath}");
+        }
+
+        extract(array_merge($this->data, $data));
+        include $filePath;
     }
 
     /**
      * Escape HTML
      */
-    public function escape($text)
+    public function e($text)
     {
-        return htmlspecialchars($text, ENT_QUOTES, 'UTF-8');
+        return htmlspecialchars($text ?? '', ENT_QUOTES, 'UTF-8');
     }
 
     /**
@@ -55,7 +101,15 @@ class View
      */
     public function url($path = '')
     {
-        return $_SERVER['REQUEST_SCHEME'] . '://' . $_SERVER['HTTP_HOST'] . '/' . ltrim($path, '/');
+        return BASE_URL . ltrim($path, '/');
+    }
+
+    /**
+     * Asset URL (css, js, images)
+     */
+    public function asset($path)
+    {
+        return BASE_URL . 'assets/' . ltrim($path, '/');
     }
 
     /**
@@ -64,5 +118,64 @@ class View
     public function has($key)
     {
         return isset($this->data[$key]);
+    }
+
+    /**
+     * Get flash message
+     */
+    public function flash($type = null)
+    {
+        if (!isset($_SESSION['flash'])) {
+            return null;
+        }
+
+        $flash = $_SESSION['flash'];
+        unset($_SESSION['flash']);
+
+        if ($type) {
+            return $flash['type'] === $type ? $flash['message'] : null;
+        }
+
+        return $flash;
+    }
+
+    /**
+     * Check if user is logged in
+     */
+    public function auth()
+    {
+        return isset($_SESSION['user_id']);
+    }
+
+    /**
+     * Get current user
+     */
+    public function user()
+    {
+        return $_SESSION['user'] ?? null;
+    }
+
+    /**
+     * Format currency (Rupiah)
+     */
+    public function currency($amount)
+    {
+        return 'Rp ' . number_format($amount, 0, ',', '.');
+    }
+
+    /**
+     * Format date
+     */
+    public function date($date, $format = 'd M Y')
+    {
+        return date($format, strtotime($date));
+    }
+
+    /**
+     * Old input value (for form)
+     */
+    public function old($key, $default = '')
+    {
+        return $_SESSION['old'][$key] ?? $default;
     }
 }

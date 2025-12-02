@@ -3,77 +3,102 @@
 namespace App\Models;
 
 use Core\Model;
-use Core\Database;
 
 class Room extends Model
 {
-    protected static $table = "rooms";
+    protected $table = 'rooms';
+    protected $fillable = ['room_number', 'room_type', 'price_per_night', 'description', 'image', 'is_available'];
 
-    #ambil semua kamar
-    public static function all()
+    /**
+     * Get available rooms
+     */
+    public function getAvailable()
     {
-        $db = Database::getInstance();
-        $query = $db->query("SELECT * FROM " . self::$table . " ORDER BY id DESC");
-
-        return $query->fetchALL();
+        return $this->db->query("SELECT * FROM {$this->table} WHERE is_available = 1")
+                        ->resultSet();
     }
 
-
-    #ambil kamar berdasarkan ID
-    public static function find($id)
+    /**
+     * Get rooms by type
+     */
+    public function getByType($type)
     {
-        $db = Database::getInstance();
-        $query = $db->prepare("SELECT * FROM " . self::$table . " WHERE id = ?");
-        $query->execute([$id]);
-
-        return $query->fetch();
+        return $this->where('room_type', $type);
     }
 
-    #tambah kamar
-    public static function create($data)
+    /**
+     * Get standard rooms
+     */
+    public function getStandard()
     {
-        $db = Database::getInstance();
-        $query = $db->prepare("
-            INSERT INTO " . self::$table . " (room_name, description, price, status)
-            VALUES (?, ?, ?, ?)
-        ");
-
-        return $query->execute([
-            $data['room_name'],
-            $data['description'],
-            $data['price'],
-            $data['status']
-        ]);
+        return $this->getByType('standard');
     }
 
-    #update kamar
-    public static function updateData($id, $data)
+    /**
+     * Get deluxe rooms
+     */
+    public function getDeluxe()
     {
-        $db = Database::getInstance();
-
-        $query = $db->prepare("
-            UPDATE " . self::$table . "
-            SET room_name = ?, description = ?, price = ?, status = ?
-            WHERE id = ?
-        ");
-
-        return $query->execute([
-            $data['room_name'],
-            $data['description'],
-            $data['price'],
-            $data['status'],
-            $id
-        ]);
+        return $this->getByType('deluxe');
     }
 
-
-    #hapus kamar
-    public static function delete($id)
+    /**
+     * Get suite rooms
+     */
+    public function getSuite()
     {
-        $db = Database::getInstance();
+        return $this->getByType('suite');
+    }
 
-        $query = $db->prepare("DELETE FROM " . self::$table . " WHERE id = ?");
-        return $query->execute([$id]);
+    /**
+     * Set room availability
+     */
+    public function setAvailability($id, $isAvailable)
+    {
+        return $this->update($id, ['is_available' => $isAvailable ? 1 : 0]);
+    }
+
+    /**
+     * Find by room number
+     */
+    public function findByRoomNumber($roomNumber)
+    {
+        return $this->findBy('room_number', $roomNumber);
+    }
+
+    /**
+     * Get rooms by price range
+     */
+    public function getByPriceRange($minPrice, $maxPrice)
+    {
+        return $this->db->query("SELECT * FROM {$this->table} 
+                                 WHERE price_per_night BETWEEN :min AND :max 
+                                 AND is_available = 1
+                                 ORDER BY price_per_night ASC")
+                        ->bind(':min', $minPrice)
+                        ->bind(':max', $maxPrice)
+                        ->resultSet();
+    }
+
+    /**
+     * Check if room is available for dates
+     */
+    public function isAvailableForDates($roomId, $checkIn, $checkOut)
+    {
+        $result = $this->db->query("SELECT COUNT(*) as count FROM bookings 
+                                    WHERE room_id = :room_id 
+                                    AND status NOT IN ('cancelled', 'checked_out')
+                                    AND (
+                                        (check_in_date <= :check_in AND check_out_date > :check_in)
+                                        OR (check_in_date < :check_out AND check_out_date >= :check_out)
+                                        OR (check_in_date >= :check_in AND check_out_date <= :check_out)
+                                    )")
+                           ->bind(':room_id', $roomId)
+                           ->bind(':check_in', $checkIn)
+                           ->bind(':check_out', $checkOut)
+                           ->single();
+        
+        return $result->count == 0;
     }
 }
 

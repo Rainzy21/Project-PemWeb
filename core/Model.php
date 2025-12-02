@@ -18,9 +18,7 @@ class Model
      */
     public function all()
     {
-        $sql = "SELECT * FROM {$this->table}";
-        $stmt = $this->db->query($sql);
-        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        return $this->db->query("SELECT * FROM {$this->table}")->resultSet();
     }
 
     /**
@@ -28,10 +26,9 @@ class Model
      */
     public function find($id)
     {
-        $sql = "SELECT * FROM {$this->table} WHERE id = ? ";
-        $stmt = $this->db->prepare($sql);
-        $stmt->execute([$id]);
-        return $stmt->fetch(\PDO::FETCH_ASSOC);
+        return $this->db->query("SELECT * FROM {$this->table} WHERE id = :id")
+                        ->bind(':id', $id)
+                        ->single();
     }
 
     /**
@@ -39,10 +36,19 @@ class Model
      */
     public function findBy($column, $value)
     {
-        $sql = "SELECT * FROM {$this->table} WHERE {$column} = ? ";
-        $stmt = $this->db->prepare($sql);
-        $stmt->execute([$value]);
-        return $stmt->fetch(\PDO::FETCH_ASSOC);
+        return $this->db->query("SELECT * FROM {$this->table} WHERE {$column} = :value")
+                        ->bind(':value', $value)
+                        ->single();
+    }
+
+    /**
+     * Get all by column
+     */
+    public function where($column, $value)
+    {
+        return $this->db->query("SELECT * FROM {$this->table} WHERE {$column} = :value")
+                        ->bind(':value', $value)
+                        ->resultSet();
     }
 
     /**
@@ -52,12 +58,15 @@ class Model
     {
         $data = $this->filterFillable($data);
         $columns = implode(', ', array_keys($data));
-        $placeholders = implode(', ', array_fill(0, count($data), '?'));
+        $placeholders = ':' . implode(', :', array_keys($data));
         
-        $sql = "INSERT INTO {$this->table} ({$columns}) VALUES ({$placeholders})";
-        $stmt = $this->db->prepare($sql);
-        $stmt->execute(array_values($data));
+        $this->db->query("INSERT INTO {$this->table} ({$columns}) VALUES ({$placeholders})");
         
+        foreach ($data as $key => $value) {
+            $this->db->bind(":{$key}", $value);
+        }
+        
+        $this->db->execute();
         return $this->db->lastInsertId();
     }
 
@@ -67,11 +76,16 @@ class Model
     public function update($id, array $data)
     {
         $data = $this->filterFillable($data);
-        $set = implode(', ', array_map(fn($k) => "{$k} = ? ", array_keys($data)));
+        $set = implode(', ', array_map(fn($k) => "{$k} = :{$k}", array_keys($data)));
         
-        $sql = "UPDATE {$this->table} SET {$set} WHERE id = ?";
-        $stmt = $this->db->prepare($sql);
-        return $stmt->execute([... array_values($data), $id]);
+        $this->db->query("UPDATE {$this->table} SET {$set} WHERE id = :id");
+        
+        foreach ($data as $key => $value) {
+            $this->db->bind(":{$key}", $value);
+        }
+        $this->db->bind(':id', $id);
+        
+        return $this->db->execute();
     }
 
     /**
@@ -79,9 +93,9 @@ class Model
      */
     public function delete($id)
     {
-        $sql = "DELETE FROM {$this->table} WHERE id = ?";
-        $stmt = $this->db->prepare($sql);
-        return $stmt->execute([$id]);
+        return $this->db->query("DELETE FROM {$this->table} WHERE id = :id")
+                        ->bind(':id', $id)
+                        ->execute();
     }
 
     /**
@@ -96,12 +110,23 @@ class Model
     }
 
     /**
-     * Raw query - untuk query custom apapun
+     * Count records
      */
-    public function query($sql, array $params = [])
+    public function count()
     {
-        $stmt = $this->db->prepare($sql);
-        $stmt->execute($params);
-        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        $result = $this->db->query("SELECT COUNT(*) as total FROM {$this->table}")->single();
+        return $result->total ?? 0;
+    }
+
+    /**
+     * Raw query
+     */
+    public function raw($sql, array $params = [])
+    {
+        $this->db->query($sql);
+        foreach ($params as $key => $value) {
+            $this->db->bind($key, $value);
+        }
+        return $this->db->resultSet();
     }
 }

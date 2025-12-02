@@ -2,70 +2,64 @@
 
 namespace Core;
 
+use Core\Traits\ParsesRoutes;
+use Core\Traits\ResolvesController;
+use Core\Traits\HandlesErrors;
+
 class Router
 {
-    protected $routes = [];
-    protected $params = [];
-    protected $controller;
-    protected $method;
+    use ParsesRoutes, ResolvesController, HandlesErrors;
+
+    protected array $routes = [];
+    protected array $params = [];
+    protected string $controller = '';
+    protected string $method = '';
 
     /**
      * Add GET route
      */
-    public function get($route, $action)
+    public function get(string $route, string $action): self
     {
-        $this->addRoute('GET', $route, $action);
+        return $this->addRoute('GET', $route, $action);
     }
 
     /**
      * Add POST route
      */
-    public function post($route, $action)
+    public function post(string $route, string $action): self
     {
-        $this->addRoute('POST', $route, $action);
+        return $this->addRoute('POST', $route, $action);
     }
 
     /**
      * Add route to collection
      */
-    protected function addRoute($method, $route, $action)
+    protected function addRoute(string $method, string $route, string $action): self
     {
-        // Convert route to regex pattern
-        $route = preg_replace('/\//', '\\/', $route);
-        $route = preg_replace('/\{([a-z]+)\}/', '(?P<\1>[a-z0-9-]+)', $route);
-        $route = preg_replace('/\{([a-z]+):([^\}]+)\}/', '(?P<\1>\2)', $route);
-        $route = '/^' . $route . '$/i';
-
-        $this->routes[$method][$route] = $action;
+        $pattern = $this->convertToRegex($route);
+        $this->routes[$method][$pattern] = $action;
+        
+        return $this;
     }
 
     /**
      * Match URL to route
      */
-    public function match($url, $method)
+    public function match(string $url, string $method): bool
     {
         $method = strtoupper($method);
-        
+
         if (!isset($this->routes[$method])) {
             return false;
         }
 
-        foreach ($this->routes[$method] as $route => $action) {
-            if (preg_match($route, $url, $matches)) {
-                // Extract named parameters
-                foreach ($matches as $key => $match) {
-                    if (is_string($key)) {
-                        $this->params[$key] = $match;
-                    }
-                }
-
-                // Parse controller@method
-                if (is_string($action)) {
-                    $parts = explode('@', $action);
-                    $this->controller = $parts[0];
-                    $this->method = $parts[1] ?? 'index';
-                }
-
+        foreach ($this->routes[$method] as $pattern => $action) {
+            if (preg_match($pattern, $url, $matches)) {
+                $this->params = $this->extractParams($matches);
+                $parsed = $this->parseAction($action);
+                $this->controller = $parsed['controller'];
+                $this->method = $parsed['method'];
+                
                 return true;
             }
         }
@@ -76,36 +70,14 @@ class Router
     /**
      * Dispatch the route
      */
-    public function dispatch($url)
+    public function dispatch(string $url): void
     {
-        // Remove query string
-        $url = parse_url($url, PHP_URL_PATH);
-        $url = trim($url, '/');
-
-        // Default route
-        if ($url === '') {
-            $url = 'home';
-        }
-
+        $url = $this->cleanUrl($url);
         $method = $_SERVER['REQUEST_METHOD'];
 
         if ($this->match($url, $method)) {
-            $controllerName = "App\\Controllers\\{$this->controller}";
-            
-            if (class_exists($controllerName)) {
-                $controller = new $controllerName();
-                
-                if (method_exists($controller, $this->method)) {
-                    call_user_func_array([$controller, $this->method], $this->params);
-                    return;
-                } else {
-                    $this->error(404, "Method {$this->method} not found");
-                }
-            } else {
-                $this->error(404, "Controller {$this->controller} not found");
-            }
+            $this->dispatchToController($this->controller, $this->method, $this->params);
         } else {
-            // Auto routing fallback (controller/method/params)
             $this->autoRoute($url);
         }
     }
@@ -113,53 +85,21 @@ class Router
     /**
      * Auto routing: /controller/method/param1/param2
      */
-    protected function autoRoute($url)
+    protected function autoRoute(string $url): void
     {
         $segments = explode('/', $url);
-        
-        // Controller
+
         $controller = !empty($segments[0]) ? ucfirst($segments[0]) : 'Home';
-        $controllerName = "App\\Controllers\\{$controller}";
-        
-        // Method
         $method = $segments[1] ?? 'index';
-        
-        // Parameters
         $params = array_slice($segments, 2);
 
-        if (class_exists($controllerName)) {
-            $controllerObj = new $controllerName();
-            
-            if (method_exists($controllerObj, $method)) {
-                call_user_func_array([$controllerObj, $method], $params);
-            } else {
-                $this->error(404, "Method {$method} not found in {$controller}");
-            }
-        } else {
-            $this->error(404, "Page not found");
-        }
-    }
-
-    /**
-     * Error handler
-     */
-    protected function error($code, $message = '')
-    {
-        http_response_code($code);
-        
-        $errorView = "../app/views/errors/{$code}.php";
-        if (file_exists($errorView)) {
-            require_once $errorView;
-        } else {
-            echo "<h1>Error {$code}</h1><p>{$message}</p>";
-        }
-        exit;
+        $this->dispatchToController($controller . 'Controller', $method, $params);
     }
 
     /**
      * Get params
      */
-    public function getParams()
+    public function getParams(): array
     {
         return $this->params;
     }

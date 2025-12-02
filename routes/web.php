@@ -56,67 +56,67 @@ $router->get('booking/invoice/{id}', 'BookingController@invoice');
 // ============================================
 
 // Dashboard
-$router->get('admin', 'Admin\\DashboardController@index');
-$router->get('admin/dashboard', 'Admin\\DashboardController@index');
-$router->get('admin/analytics', 'Admin\\DashboardController@analytics');
-$router->get('admin/reports', 'Admin\\DashboardController@reports');
-$router->get('admin/reports/export', 'Admin\\DashboardController@exportReport');
-$router->get('admin/settings', 'Admin\\DashboardController@settings');
-$router->get('admin/activity-log', 'Admin\\DashboardController@activityLog');
+$router->get('admin', 'AdminDashboardController@index');
+$router->get('admin/dashboard', 'AdminDashboardController@index');
+$router->get('admin/analytics', 'AdminDashboardController@analytics');
+$router->get('admin/reports', 'AdminDashboardController@reports');
+$router->get('admin/reports/export', 'AdminDashboardController@exportReport');
+$router->get('admin/settings', 'AdminDashboardController@settings');
+$router->get('admin/activity-log', 'AdminDashboardController@activityLog');
 
 // ============================================
 // ADMIN - Users Management
 // ============================================
 
-$router->get('admin/users', 'Admin\\UserController@index');
-$router->get('admin/users/create', 'Admin\\UserController@create');
-$router->post('admin/users/store', 'Admin\\UserController@store');
-$router->get('admin/users/export', 'Admin\\UserController@export');
-$router->get('admin/users/stats', 'Admin\\UserController@stats');
-$router->post('admin/users/bulk-action', 'Admin\\UserController@bulkAction');
+$router->get('admin/users', 'AdminUserController@index');
+$router->get('admin/users/create', 'AdminUserController@create');
+$router->post('admin/users/store', 'AdminUserController@store');
+$router->get('admin/users/export', 'AdminUserController@export');
+$router->get('admin/users/stats', 'AdminUserController@stats');
+$router->post('admin/users/bulk-action', 'AdminUserController@bulkAction');
 // Routes dengan parameter harus di bawah
-$router->get('admin/users/{id}', 'Admin\\UserController@detail');
-$router->get('admin/users/{id}/edit', 'Admin\\UserController@edit');
-$router->post('admin/users/{id}/update', 'Admin\\UserController@update');
-$router->post('admin/users/{id}/reset-password', 'Admin\\UserController@resetPassword');
-$router->get('admin/users/{id}/delete', 'Admin\\UserController@delete');
-$router->get('admin/users/{id}/toggle-role', 'Admin\\UserController@toggleRole');
+$router->get('admin/users/{id}', 'AdminUserController@detail');
+$router->get('admin/users/{id}/edit', 'AdminUserController@edit');
+$router->post('admin/users/{id}/update', 'AdminUserController@update');
+$router->post('admin/users/{id}/reset-password', 'AdminUserController@resetPassword');
+$router->get('admin/users/{id}/delete', 'AdminUserController@delete');
+$router->get('admin/users/{id}/toggle-role', 'AdminUserController@toggleRole');
 
 // ============================================
 // ADMIN - Rooms Management
 // ============================================
 
-$router->get('admin/rooms', 'Admin\\RoomController@index');
-$router->get('admin/rooms/create', 'Admin\\RoomController@create');
-$router->post('admin/rooms/store', 'Admin\\RoomController@store');
-$router->get('admin/rooms/stats', 'Admin\\RoomController@stats');
-$router->post('admin/rooms/bulk-update', 'Admin\\RoomController@bulkUpdate');
+$router->get('admin/rooms', 'AdminRoomController@index');
+$router->get('admin/rooms/create', 'AdminRoomController@create');
+$router->post('admin/rooms/store', 'AdminRoomController@store');
+$router->get('admin/rooms/stats', 'AdminRoomController@stats');
+$router->post('admin/rooms/bulk-update', 'AdminRoomController@bulkUpdate');
 // Routes dengan parameter harus di bawah
-$router->get('admin/rooms/{id}', 'Admin\\RoomController@detail');
-$router->get('admin/rooms/{id}/edit', 'Admin\\RoomController@edit');
-$router->post('admin/rooms/{id}/update', 'Admin\\RoomController@update');
-$router->get('admin/rooms/{id}/delete', 'Admin\\RoomController@delete');
-$router->get('admin/rooms/{id}/toggle', 'Admin\\RoomController@toggleAvailability');
-$router->get('admin/rooms/{id}/check', 'Admin\\RoomController@checkAvailability');
+$router->get('admin/rooms/{id}', 'AdminRoomController@detail');
+$router->get('admin/rooms/{id}/edit', 'AdminRoomController@edit');
+$router->post('admin/rooms/{id}/update', 'AdminRoomController@update');
+$router->get('admin/rooms/{id}/delete', 'AdminRoomController@delete');
+$router->get('admin/rooms/{id}/toggle', 'AdminRoomController@toggleAvailability');
+$router->get('admin/rooms/{id}/check', 'AdminRoomController@checkAvailability');
 
 // ============================================
 // ADMIN - Bookings Management
 // ============================================
 
-$router->get('admin/bookings', 'Admin\\BookingController@index');
-$router->get('admin/bookings/create', 'Admin\\BookingController@create');
-$router->post('admin/bookings/store', 'Admin\\BookingController@store');
-$router->get('admin/bookings/export', 'Admin\\BookingController@export');
-$router->get('admin/bookings/today-checkins', 'Admin\\BookingController@todayCheckIns');
-$router->get('admin/bookings/today-checkouts', 'Admin\\BookingController@todayCheckOuts');
+$router->get('admin/bookings', 'AdminBookingController@index');
+$router->get('admin/bookings/create', 'AdminBookingController@create');
+$router->post('admin/bookings/store', 'AdminBookingController@store');
+$router->get('admin/bookings/export', 'AdminBookingController@export');
+$router->get('admin/bookings/today-checkins', 'AdminBookingController@todayCheckIns');
+$router->get('admin/bookings/today-checkouts', 'AdminBookingController@todayCheckOuts');
 // Routes dengan parameter harus di bawah
-$router->get('admin/bookings/{id}', 'Admin\\BookingController@detail');
-$router->post('admin/bookings/{id}/status', 'Admin\\BookingController@updateStatus');
-$router->get('admin/bookings/{id}/confirm', 'Admin\\BookingController@confirm');
-$router->get('admin/bookings/{id}/checkin', 'Admin\\BookingController@checkIn');
-$router->get('admin/bookings/{id}/checkout', 'Admin\\BookingController@checkOut');
-$router->get('admin/bookings/{id}/cancel', 'Admin\\BookingController@cancel');
-$router->get('admin/bookings/{id}/delete', 'Admin\\BookingController@delete');
-$router->get('admin/bookings/{id}/invoice', 'Admin\\BookingController@invoice');
+$router->get('admin/bookings/{id}', 'AdminBookingController@detail');
+$router->post('admin/bookings/{id}/status', 'AdminBookingController@updateStatus');
+$router->get('admin/bookings/{id}/confirm', 'AdminBookingController@confirm');
+$router->get('admin/bookings/{id}/checkin', 'AdminBookingController@checkIn');
+$router->get('admin/bookings/{id}/checkout', 'AdminBookingController@checkOut');
+$router->get('admin/bookings/{id}/cancel', 'AdminBookingController@cancel');
+$router->get('admin/bookings/{id}/delete', 'AdminBookingController@delete');
+$router->get('admin/bookings/{id}/invoice', 'AdminBookingController@invoice');
 
 return $router;

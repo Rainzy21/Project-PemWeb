@@ -2,10 +2,17 @@
 
 namespace Core;
 
+use Core\Traits\LoadsModels;
+use Core\Traits\HandlesRequest;
+use Core\Traits\HandlesResponse;
+use Core\Traits\ValidatesInput;
+use Core\Traits\ChecksAuth;
+
 class Controller
 {
-    protected $view;
-    protected $models = [];
+    use LoadsModels, HandlesRequest, HandlesResponse, ValidatesInput, ChecksAuth;
+
+    protected View $view;
 
     public function __construct()
     {
@@ -13,148 +20,10 @@ class Controller
     }
 
     /**
-     * Load model
-     */
-    protected function loadModel($modelName)
-    {
-        $modelClass = "App\\Models\\{$modelName}";
-        
-        if (!isset($this->models[$modelName])) {
-            if (!class_exists($modelClass)) {
-                throw new \Exception("Model {$modelName} not found");
-            }
-            $this->models[$modelName] = new $modelClass();
-        }
-        
-        return $this->models[$modelName];
-    }
-
-    /**
      * Render view
      */
-    protected function render($view, $data = [])
+    protected function render(string $view, array $data = []): void
     {
-        return $this->view->render($view, $data);
-    }
-
-    /**
-     * Redirect to another page
-     */
-    protected function redirect($url)
-    {
-        // Support relative URL dengan BASE_URL
-        if (strpos($url, 'http') !== 0) {
-            $url = BASE_URL . ltrim($url, '/');
-        }
-        header("Location: {$url}");
-        exit;
-    }
-
-    /**
-     * Return JSON response
-     */
-    protected function json($data, $statusCode = 200)
-    {
-        http_response_code($statusCode);
-        header('Content-Type: application/json');
-        echo json_encode($data);
-        exit;
-    }
-
-    /**
-     * Get request data
-     */
-    protected function getRequest($key = null, $default = null)
-    {
-        $data = array_merge($_GET, $_POST);
-        
-        if ($key === null) {
-            return $data;
-        }
-        
-        return $data[$key] ?? $default;
-    }
-
-    /**
-     * Check if request method is POST
-     */
-    protected function isPost()
-    {
-        return $_SERVER['REQUEST_METHOD'] === 'POST';
-    }
-
-    /**
-     * Check if request method is GET
-     */
-    protected function isGet()
-    {
-        return $_SERVER['REQUEST_METHOD'] === 'GET';
-    }
-
-    /**
-     * Validate input
-     */
-    protected function validate($data, $rules)
-    {
-        $errors = [];
-        
-        foreach ($rules as $field => $fieldRules) {
-            $rules_array = explode('|', $fieldRules);
-            
-            foreach ($rules_array as $rule) {
-                $this->validateField($field, $data[$field] ?? null, $rule, $errors);
-            }
-        }
-        
-        return $errors;
-    }
-
-    private function validateField($field, $value, $rule, &$errors)
-    {
-        if ($rule === 'required' && empty($value)) {
-            $errors[$field] = "{$field} is required";
-        }
-        
-        if (strpos($rule, 'min:') === 0 && strlen($value) < (int)substr($rule, 4)) {
-            $errors[$field] = "{$field} must be at least " . substr($rule, 4) . " characters";
-        }
-        
-        if (strpos($rule, 'max:') === 0 && strlen($value) > (int)substr($rule, 4)) {
-            $errors[$field] = "{$field} must not exceed " . substr($rule, 4) . " characters";
-        }
-        
-        if ($rule === 'email' && !filter_var($value, FILTER_VALIDATE_EMAIL)) {
-            $errors[$field] = "{$field} must be a valid email";
-        }
-    }
-
-    /**
-     * Set flash message untuk notifikasi
-     */
-    protected function setFlash($type, $message)
-    {
-        $_SESSION['flash'] = [
-            'type' => $type,
-            'message' => $message
-        ];
-    }
-
-    /**
-     * Check if user is logged in
-     */
-    protected function isLoggedIn()
-    {
-        return isset($_SESSION['user_id']);
-    }
-
-    /**
-     * Require login - redirect if not authenticated
-     */
-    protected function requireLogin()
-    {
-        if (!$this->isLoggedIn()) {
-            $this->setFlash('error', 'Please login first');
-            $this->redirect('auth/login');
-        }
+        $this->view->render($view, $data);
     }
 }

@@ -3,9 +3,14 @@
 namespace App\Controllers;
 
 use Core\Controller;
+use App\Controllers\Traits\HandlesBooking;
+use App\Controllers\Traits\HandlesRoom;
+use App\Controllers\Traits\ValidatesBookingDates;
 
 class BookingController extends Controller
 {
+    use HandlesBooking, HandlesRoom, ValidatesBookingDates;
+
     /**
      * Tampilkan form booking untuk room tertentu
      */
@@ -14,16 +19,10 @@ class BookingController extends Controller
         $this->requireLogin();
 
         $roomModel = $this->loadModel('Room');
-        $room = $roomModel->find($roomId);
-
-        if (!$room) {
-            $this->setFlash('error', 'Kamar tidak ditemukan');
-            $this->redirect('rooms');
-        }
-
-        if (!$room->is_available) {
-            $this->setFlash('error', 'Kamar tidak tersedia');
-            $this->redirect('rooms');
+        $room = $this->findRoomOrFail($roomModel, $roomId);
+        
+        if (!$room || !$this->ensureRoomAvailable($room)) {
+            return;
         }
 
         $this->view->setLayout('main')->render('booking/create', [
@@ -40,53 +39,42 @@ class BookingController extends Controller
         $this->requireLogin();
 
         if (!$this->isPost()) {
-            $this->redirect('rooms');
+            return $this->redirect('rooms');
         }
 
-        $roomId = $_POST['room_id'] ?? '';
-        $checkIn = $_POST['check_in_date'] ?? '';
-        $checkOut = $_POST['check_out_date'] ?? '';
+        $input = $this->getBookingInput();
+        $redirectTo = 'booking/' . $input['room_id'];
 
-        // Validasi input
-        if (empty($roomId) || empty($checkIn) || empty($checkOut)) {
-            $this->setFlash('error', 'Semua field harus diisi');
-            $this->redirect('booking/' . $roomId);
-        }
+        // Validasi input & tanggal
+        if (!$this->validateBookingInput($input, $redirectTo)) return;
+        if (!$this->validateBookingDates($input['check_in'], $input['check_out'], $redirectTo)) return;
 
-        // Validasi tanggal
-        $today = date('Y-m-d');
-        if ($checkIn < $today) {
-            $this->setFlash('error', 'Tanggal check-in tidak boleh kurang dari hari ini');
-            $this->redirect('booking/' . $roomId);
-        }
-
-        if ($checkOut <= $checkIn) {
-            $this->setFlash('error', 'Tanggal check-out harus lebih besar dari check-in');
-            $this->redirect('booking/' . $roomId);
-        }
-
+        // Validasi room
         $roomModel = $this->loadModel('Room');
-        $room = $roomModel->find($roomId);
+        $room = $this->findRoomOrFail($roomModel, $input['room_id']);
+        if (!$room) return;
 
-        if (!$room) {
-            $this->setFlash('error', 'Kamar tidak ditemukan');
-            $this->redirect('rooms');
+        // Cek ketersediaan
+        if (!$this->ensureRoomAvailableForDates($roomModel, $input['room_id'], $input['check_in'], $input['check_out'], $redirectTo)) {
+            return;
         }
 
-        // Cek ketersediaan kamar untuk tanggal tersebut
-        if (!$roomModel->isAvailableForDates($roomId, $checkIn, $checkOut)) {
-            $this->setFlash('error', 'Kamar tidak tersedia untuk tanggal tersebut');
-            $this->redirect('booking/' . $roomId);
-        }
+        // Proses booking
+        $this->processBooking($input, $room);
+    }
 
+    /**
+     * Process the actual booking creation
+     */
+    protected function processBooking(array $input, object $room): void
+    {
         $bookingModel = $this->loadModel('Booking');
 
-        // Buat booking
         $bookingId = $bookingModel->createBooking(
             $_SESSION['user_id'],
-            $roomId,
-            $checkIn,
-            $checkOut,
+            $input['room_id'],
+            $input['check_in'],
+            $input['check_out'],
             $room->price_per_night
         );
 
@@ -95,7 +83,7 @@ class BookingController extends Controller
             $this->redirect('my-bookings');
         } else {
             $this->setFlash('error', 'Booking gagal. Silakan coba lagi');
-            $this->redirect('booking/' . $roomId);
+            $this->redirect('booking/' . $input['room_id']);
         }
     }
 
@@ -106,8 +94,7 @@ class BookingController extends Controller
     {
         $this->requireLogin();
 
-        $bookingModel = $this->loadModel('Booking');
-        $bookings = $bookingModel->getByUser($_SESSION['user_id']);
+        $bookings = $this->loadModel('Booking')->getByUser($_SESSION['user_id']);
 
         $this->view->setLayout('main')->render('booking/my-bookings', [
             'title' => 'Booking Saya - ' . APP_NAME,
@@ -123,17 +110,13 @@ class BookingController extends Controller
         $this->requireLogin();
 
         $bookingModel = $this->loadModel('Booking');
-        $booking = $bookingModel->getWithDetails($id);
+        $booking = $this->findBookingWithDetailsOrFail($bookingModel, $id);
+        
+        if (!$booking) return;
 
-        if (!$booking) {
-            $this->setFlash('error', 'Booking tidak ditemukan');
-            $this->redirect('my-bookings');
-        }
-
-        // Pastikan booking milik user yang login (kecuali admin)
-        if ($booking->user_id != $_SESSION['user_id'] && $_SESSION['user']->role !== 'admin') {
+        if (!$this->validateBookingOwnership($booking)) {
             $this->setFlash('error', 'Anda tidak memiliki akses ke booking ini');
-            $this->redirect('my-bookings');
+            return $this->redirect('my-bookings');
         }
 
         $this->view->setLayout('main')->render('booking/detail', [
@@ -150,30 +133,24 @@ class BookingController extends Controller
         $this->requireLogin();
 
         $bookingModel = $this->loadModel('Booking');
-        $booking = $bookingModel->find($id);
+        $booking = $this->findBookingOrFail($bookingModel, $id);
+        
+        if (!$booking) return;
 
-        if (!$booking) {
-            $this->setFlash('error', 'Booking tidak ditemukan');
-            $this->redirect('my-bookings');
-        }
-
-        // Pastikan booking milik user yang login
-        if ($booking->user_id != $_SESSION['user_id']) {
+        if (!$this->validateBookingOwnership($booking, false)) {
             $this->setFlash('error', 'Anda tidak memiliki akses ke booking ini');
-            $this->redirect('my-bookings');
+            return $this->redirect('my-bookings');
         }
 
-        // Hanya bisa cancel jika status pending atau confirmed
-        if (!in_array($booking->status, ['pending', 'confirmed'])) {
+        if (!$this->isCancellable($booking)) {
             $this->setFlash('error', 'Booking tidak dapat dibatalkan');
-            $this->redirect('my-bookings');
+            return $this->redirect('my-bookings');
         }
 
-        if ($bookingModel->cancel($id)) {
-            $this->setFlash('success', 'Booking berhasil dibatalkan');
-        } else {
-            $this->setFlash('error', 'Gagal membatalkan booking');
-        }
+        $this->setFlash(
+            $bookingModel->cancel($id) ? 'success' : 'error',
+            $bookingModel->cancel($id) ? 'Booking berhasil dibatalkan' : 'Gagal membatalkan booking'
+        );
 
         $this->redirect('my-bookings');
     }
@@ -184,36 +161,42 @@ class BookingController extends Controller
     public function checkAvailability()
     {
         if (!$this->isPost()) {
-            $this->json(['error' => 'Invalid request'], 400);
+            return $this->json(['error' => 'Invalid request'], 400);
         }
 
-        $roomId = $_POST['room_id'] ?? '';
-        $checkIn = $_POST['check_in_date'] ?? '';
-        $checkOut = $_POST['check_out_date'] ?? '';
+        $input = $this->getBookingInput();
 
-        if (empty($roomId) || empty($checkIn) || empty($checkOut)) {
-            $this->json(['error' => 'Data tidak lengkap'], 400);
+        if (empty($input['room_id']) || empty($input['check_in']) || empty($input['check_out'])) {
+            return $this->json(['error' => 'Data tidak lengkap'], 400);
         }
 
         $roomModel = $this->loadModel('Room');
-        $room = $roomModel->find($roomId);
+        $room = $roomModel->find($input['room_id']);
 
         if (!$room) {
-            $this->json(['error' => 'Kamar tidak ditemukan'], 404);
+            return $this->json(['error' => 'Kamar tidak ditemukan'], 404);
         }
 
-        $isAvailable = $roomModel->isAvailableForDates($roomId, $checkIn, $checkOut);
+        $this->json($this->buildAvailabilityResponse($roomModel, $room, $input));
+    }
+
+    /**
+     * Build availability check response
+     */
+    protected function buildAvailabilityResponse($roomModel, object $room, array $input): array
+    {
+        $isAvailable = $roomModel->isAvailableForDates($input['room_id'], $input['check_in'], $input['check_out']);
 
         $bookingModel = $this->loadModel('Booking');
-        $nights = $bookingModel->calculateNights($checkIn, $checkOut);
+        $nights = $bookingModel->calculateNights($input['check_in'], $input['check_out']);
         $totalPrice = $nights * $room->price_per_night;
 
-        $this->json([
+        return [
             'available' => $isAvailable,
             'nights' => $nights,
             'price_per_night' => $room->price_per_night,
             'total_price' => $totalPrice,
             'total_price_formatted' => 'Rp ' . number_format($totalPrice, 0, ',', '.')
-        ]);
+        ];
     }
 }

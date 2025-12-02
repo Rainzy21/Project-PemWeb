@@ -1,37 +1,70 @@
 <?php
-class App {
-    protected $controller = 'Home';
-    protected $method = 'index';
-    protected $params = [];
 
-    public function __construct() {
-        $url = $this->parseURL();
+namespace Core;
 
-        // Controller
-        if (isset($url[0]) && file_exists('../app/controllers/' . ucfirst($url[0]) . '.php')) {
-            $this->controller = ucfirst($url[0]);
-            unset($url[0]);
-        }
+use Core\Traits\ParsesUrl;
+use Core\Traits\ResolvesApp;
 
-        require_once '../app/controllers/' . $this->controller . '.php';
-        $this->controller = new $this->controller;
+class App
+{
+    use ParsesUrl, ResolvesApp;
 
-        // Method
-        if (isset($url[1]) && method_exists($this->controller, $url[1])) {
-            $this->method = $url[1];
-            unset($url[1]);
-        }
+    protected string $defaultController = 'Home';
+    protected string $defaultMethod = 'index';
+    protected string $controllerPath;
 
-        // Params
-        $this->params = $url ? array_values($url) : [];
+    protected string $controller;
+    protected string $method;
+    protected array $params = [];
 
-        call_user_func_array([$this->controller, $this->method], $this->params);
+    public function __construct()
+    {
+        $this->controllerPath = dirname(__DIR__) . '/app/controllers/';
+        $this->dispatch();
     }
 
-    protected function parseURL() {
-        if (isset($_GET['url'])) {
-            return explode('/', filter_var(rtrim($_GET['url'], '/'), FILTER_SANITIZE_URL));
-        }
-        return [];
+    /**
+     * Dispatch request to controller
+     */
+    protected function dispatch(): void
+    {
+        $url = $this->parseUrl();
+
+        // Resolve controller
+        $this->controller = $this->resolveController($url);
+        $controllerInstance = $this->createController($this->controller);
+
+        // Resolve method
+        $this->method = $this->resolveMethod($controllerInstance, $url);
+
+        // Get remaining params from trait
+        $this->params = $this->extractParams($url);
+
+        // Execute
+        $this->executeAction($controllerInstance, $this->method, $this->params);
+    }
+
+    /**
+     * Get current controller name
+     */
+    public function getController(): string
+    {
+        return $this->controller;
+    }
+
+    /**
+     * Get current method name
+     */
+    public function getMethod(): string
+    {
+        return $this->method;
+    }
+
+    /**
+     * Get current params
+     */
+    public function getCurrentParams(): array
+    {
+        return $this->params;
     }
 }

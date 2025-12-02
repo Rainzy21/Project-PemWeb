@@ -3,35 +3,30 @@
 namespace App\Controllers;
 
 use Core\Controller;
+use App\Controllers\Traits\HandlesRoom;
+use App\Controllers\Traits\HandlesRoomFilter;
+use App\Controllers\Traits\FormatsRoomData;
+use App\Controllers\Traits\ValidatesBookingDates;
 
 class RoomController extends Controller
 {
+    use HandlesRoom, HandlesRoomFilter, FormatsRoomData, ValidatesBookingDates;
+
     /**
      * Tampilkan semua kamar
      */
     public function index()
     {
         $roomModel = $this->loadModel('Room');
-
-        // Filter berdasarkan query string
-        $type = $_GET['type'] ?? null;
-        $minPrice = $_GET['min_price'] ?? null;
-        $maxPrice = $_GET['max_price'] ?? null;
-
-        if ($type && in_array($type, ['standard', 'deluxe', 'suite'])) {
-            $rooms = $roomModel->getByType($type);
-        } elseif ($minPrice && $maxPrice) {
-            $rooms = $roomModel->getByPriceRange($minPrice, $maxPrice);
-        } else {
-            $rooms = $roomModel->getAvailable();
-        }
+        $params = $this->getFilterParams();
+        $rooms = $this->getFilteredRooms($roomModel, $params);
 
         $this->view->setLayout('main')->render('rooms/index', [
             'title' => 'Kamar Tersedia - ' . APP_NAME,
             'rooms' => $rooms,
-            'selectedType' => $type,
-            'minPrice' => $minPrice,
-            'maxPrice' => $maxPrice
+            'selectedType' => $params['type'],
+            'minPrice' => $params['min_price'],
+            'maxPrice' => $params['max_price']
         ]);
     }
 
@@ -41,22 +36,14 @@ class RoomController extends Controller
     public function detail($id)
     {
         $roomModel = $this->loadModel('Room');
-        $room = $roomModel->find($id);
+        $room = $this->findRoomOrFail($roomModel, $id);
 
-        if (!$room) {
-            $this->setFlash('error', 'Kamar tidak ditemukan');
-            $this->redirect('rooms');
-        }
-
-        // Ambil kamar serupa (tipe sama)
-        $similarRooms = $roomModel->getByType($room->room_type);
-        $similarRooms = array_filter($similarRooms, fn($r) => $r->id != $room->id);
-        $similarRooms = array_slice($similarRooms, 0, 3);
+        if (!$room) return;
 
         $this->view->setLayout('main')->render('rooms/detail', [
             'title' => 'Kamar ' . $room->room_number . ' - ' . APP_NAME,
             'room' => $room,
-            'similarRooms' => $similarRooms
+            'similarRooms' => $this->getSimilarRooms($roomModel, $room)
         ]);
     }
 
@@ -65,50 +52,30 @@ class RoomController extends Controller
      */
     public function search()
     {
-        $checkIn = $_GET['check_in'] ?? '';
-        $checkOut = $_GET['check_out'] ?? '';
-        $type = $_GET['type'] ?? null;
+        $params = $this->getFilterParams();
 
-        if (empty($checkIn) || empty($checkOut)) {
-            $this->setFlash('error', 'Tanggal check-in dan check-out harus diisi');
-            $this->redirect('rooms');
-        }
-
-        // Validasi tanggal
-        $today = date('Y-m-d');
-        if ($checkIn < $today) {
-            $this->setFlash('error', 'Tanggal check-in tidak boleh kurang dari hari ini');
-            $this->redirect('rooms');
-        }
-
-        if ($checkOut <= $checkIn) {
-            $this->setFlash('error', 'Tanggal check-out harus lebih besar dari check-in');
-            $this->redirect('rooms');
+        if (!$this->validateSearchDates($params['check_in'], $params['check_out'], 'rooms')) {
+            return;
         }
 
         $roomModel = $this->loadModel('Room');
-        
-        // Ambil semua kamar yang tersedia
-        if ($type && in_array($type, ['standard', 'deluxe', 'suite'])) {
-            $allRooms = $roomModel->getByType($type);
-        } else {
-            $allRooms = $roomModel->getAvailable();
-        }
+        $allRooms = $this->isValidRoomType($params['type'])
+            ? $roomModel->getByType($params['type'])
+            : $roomModel->getAvailable();
 
-        // Filter kamar yang tersedia untuk tanggal tersebut
-        $availableRooms = [];
-        foreach ($allRooms as $room) {
-            if ($roomModel->isAvailableForDates($room->id, $checkIn, $checkOut)) {
-                $availableRooms[] = $room;
-            }
-        }
+        $availableRooms = $this->filterByDateAvailability(
+            $roomModel, 
+            $allRooms, 
+            $params['check_in'], 
+            $params['check_out']
+        );
 
         $this->view->setLayout('main')->render('rooms/search', [
             'title' => 'Hasil Pencarian - ' . APP_NAME,
             'rooms' => $availableRooms,
-            'checkIn' => $checkIn,
-            'checkOut' => $checkOut,
-            'selectedType' => $type
+            'checkIn' => $params['check_in'],
+            'checkOut' => $params['check_out'],
+            'selectedType' => $params['type']
         ]);
     }
 
@@ -120,11 +87,9 @@ class RoomController extends Controller
         $type = $_GET['type'] ?? '';
         $roomModel = $this->loadModel('Room');
 
-        if ($type && in_array($type, ['standard', 'deluxe', 'suite'])) {
-            $rooms = $roomModel->getByType($type);
-        } else {
-            $rooms = $roomModel->getAvailable();
-        }
+        $rooms = $this->isValidRoomType($type)
+            ? $roomModel->getByType($type)
+            : $roomModel->getAvailable();
 
         $this->json([
             'success' => true,
@@ -139,24 +104,13 @@ class RoomController extends Controller
     public function getInfo($id)
     {
         $roomModel = $this->loadModel('Room');
-        $room = $roomModel->find($id);
+        $room = $this->findRoomOrJsonFail($roomModel, $id);
 
-        if (!$room) {
-            $this->json(['error' => 'Kamar tidak ditemukan'], 404);
-        }
+        if (!$room) return;
 
         $this->json([
             'success' => true,
-            'room' => [
-                'id' => $room->id,
-                'room_number' => $room->room_number,
-                'room_type' => $room->room_type,
-                'price_per_night' => $room->price_per_night,
-                'price_formatted' => 'Rp ' . number_format($room->price_per_night, 0, ',', '.'),
-                'description' => $room->description,
-                'image' => $room->image,
-                'is_available' => $room->is_available
-            ]
+            'room' => $this->formatRoomForJson($room)
         ]);
     }
 
@@ -165,37 +119,21 @@ class RoomController extends Controller
      */
     public function checkAvailability($id)
     {
-        $checkIn = $_GET['check_in'] ?? '';
-        $checkOut = $_GET['check_out'] ?? '';
+        $params = $this->getFilterParams();
 
-        if (empty($checkIn) || empty($checkOut)) {
-            $this->json(['error' => 'Tanggal harus diisi'], 400);
+        if (!$this->validateDatesOrJsonFail($params['check_in'], $params['check_out'])) {
+            return;
         }
 
         $roomModel = $this->loadModel('Room');
-        $room = $roomModel->find($id);
+        $room = $this->findRoomOrJsonFail($roomModel, $id);
 
-        if (!$room) {
-            $this->json(['error' => 'Kamar tidak ditemukan'], 404);
-        }
+        if (!$room) return;
 
-        $isAvailable = $roomModel->isAvailableForDates($id, $checkIn, $checkOut);
+        $isAvailable = $roomModel->isAvailableForDates($id, $params['check_in'], $params['check_out']);
+        $nights = $this->loadModel('Booking')->calculateNights($params['check_in'], $params['check_out']);
 
-        // Hitung total harga
-        $bookingModel = $this->loadModel('Booking');
-        $nights = $bookingModel->calculateNights($checkIn, $checkOut);
-        $totalPrice = $nights * $room->price_per_night;
-
-        $this->json([
-            'success' => true,
-            'available' => $isAvailable,
-            'room_number' => $room->room_number,
-            'nights' => $nights,
-            'price_per_night' => $room->price_per_night,
-            'total_price' => $totalPrice,
-            'price_formatted' => 'Rp ' . number_format($room->price_per_night, 0, ',', '.'),
-            'total_formatted' => 'Rp ' . number_format($totalPrice, 0, ',', '.')
-        ]);
+        $this->json($this->buildRoomAvailabilityResponse($room, $isAvailable, $nights));
     }
 
     /**
@@ -205,27 +143,9 @@ class RoomController extends Controller
     {
         $roomModel = $this->loadModel('Room');
 
-        $types = [
-            'standard' => [
-                'name' => 'Standard',
-                'description' => 'Kamar standar dengan fasilitas dasar yang nyaman',
-                'rooms' => $roomModel->getStandard()
-            ],
-            'deluxe' => [
-                'name' => 'Deluxe',
-                'description' => 'Kamar deluxe dengan fasilitas lebih lengkap',
-                'rooms' => $roomModel->getDeluxe()
-            ],
-            'suite' => [
-                'name' => 'Suite',
-                'description' => 'Kamar suite mewah dengan fasilitas premium',
-                'rooms' => $roomModel->getSuite()
-            ]
-        ];
-
         $this->view->setLayout('main')->render('rooms/types', [
             'title' => 'Tipe Kamar - ' . APP_NAME,
-            'types' => $types
+            'types' => $this->getRoomTypesData($roomModel)
         ]);
     }
 }

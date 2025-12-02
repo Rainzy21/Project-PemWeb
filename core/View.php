@@ -4,14 +4,48 @@ namespace Core;
 
 class View
 {
-    protected $viewPath;
-    protected $data = [];
-    protected $layout = null;
-    protected $content = '';
+    protected string $viewPath = '';
+    protected array $data = [];
+    protected ?string $layout = null;
+    protected string $content = '';
 
     public function __construct()
     {
         $this->viewPath = dirname(__DIR__) . '/app/views/';
+    }
+
+    /**
+     * Magic getter for data
+     */
+    public function __get(string $key): mixed
+    {
+        return $this->data[$key] ?? null;
+    }
+
+    /**
+     * Check if variable exists
+     */
+    public function has(string $key): bool
+    {
+        return isset($this->data[$key]);
+    }
+
+    /**
+     * Set data
+     */
+    public function set(string $key, mixed $value): self
+    {
+        $this->data[$key] = $value;
+        return $this;
+    }
+
+    /**
+     * Share data globally
+     */
+    public function share(array $data): self
+    {
+        $this->data = array_merge($this->data, $data);
+        return $this;
     }
 
     /**
@@ -32,7 +66,6 @@ class View
         include $filePath;
         $content = ob_get_clean();
 
-        // Jika ada layout, wrap content dengan layout
         if ($this->layout) {
             $this->content = $content;
             $layoutPath = $this->viewPath . 'layouts/' . $this->layout . '.php';
@@ -63,14 +96,6 @@ class View
     public function content()
     {
         return $this->content;
-    }
-
-    /**
-     * Echo data
-     */
-    public function __get($key)
-    {
-        return $this->data[$key] ?? null;
     }
 
     /**
@@ -105,19 +130,11 @@ class View
     }
 
     /**
-     * Asset URL (css, js, images)
+     * Asset URL
      */
     public function asset($path)
     {
         return BASE_URL . 'assets/' . ltrim($path, '/');
-    }
-
-    /**
-     * Check if variable exists
-     */
-    public function has($key)
-    {
-        return isset($this->data[$key]);
     }
 
     /**
@@ -172,7 +189,7 @@ class View
     }
 
     /**
-     * Old input value (for form)
+     * Old input value
      */
     public function old($key, $default = '')
     {

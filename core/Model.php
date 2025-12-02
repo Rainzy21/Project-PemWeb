@@ -2,15 +2,50 @@
 
 namespace Core;
 
+use Core\Traits\HasCRUD;
+use Core\Traits\HasQuery;
+use Core\Traits\HasAggregate;
+use Core\Traits\HasRawQuery;
+
 class Model
 {
+    use HasCRUD, HasQuery, HasAggregate, HasRawQuery;
+
     protected $db;
-    protected $table;
-    protected $fillable = [];
+    protected string $table = '';
+    protected array $fillable = [];
 
     public function __construct()
     {
         $this->db = Database::getInstance();
+    }
+
+    /**
+     * Filter data by fillable fields
+     */
+    protected function filterFillable(array $data): array
+    {
+        if (empty($this->fillable)) {
+            return $data;
+        }
+
+        return array_intersect_key($data, array_flip($this->fillable));
+    }
+
+    /**
+     * Get table name
+     */
+    public function getTable(): string
+    {
+        return $this->table;
+    }
+
+    /**
+     * Get fillable fields
+     */
+    public function getFillable(): array
+    {
+        return $this->fillable;
     }
 
     /**
@@ -96,17 +131,6 @@ class Model
         return $this->db->query("DELETE FROM {$this->table} WHERE id = :id")
                         ->bind(':id', $id)
                         ->execute();
-    }
-
-    /**
-     * Filter fillable
-     */
-    protected function filterFillable(array $data)
-    {
-        if (empty($this->fillable)) {
-            return $data;
-        }
-        return array_intersect_key($data, array_flip($this->fillable));
     }
 
     /**

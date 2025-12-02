@@ -3,87 +3,68 @@
 namespace App\Models;
 
 use Core\Model;
+use App\Models\Traits\HasPassword;
+use App\Models\Traits\HasImage;
+use App\Models\Traits\HasRole;
+use App\Models\Traits\Searchable;
 
 class User extends Model
 {
-    protected $table = 'users';
-    protected $fillable = ['name', 'email', 'password_hash', 'phone', 'profile_image', 'role'];
+    use HasPassword, HasImage, HasRole, Searchable;
+
+    protected string $table = 'users';
+    protected array $fillable = ['name', 'email', 'password_hash', 'phone', 'profile_image', 'role'];
+
+    // Trait configurations
+    protected string $imageColumn = 'profile_image';
+    protected string $uploadDir = 'uploads/profiles';
+    protected array $searchable = ['name', 'email', 'phone'];
 
     /**
-     * Register user baru
+     * Register new user
      */
-    public function register(array $data)
+    public function register(array $data): int|false
     {
-        $data['password_hash'] = password_hash($data['password'], PASSWORD_DEFAULT);
-        unset($data['password']); // Hapus password plain
+        if (isset($data['password'])) {
+            $data['password_hash'] = $this->hashPassword($data['password']);
+            unset($data['password']);
+        }
+        
         $data['role'] = $data['role'] ?? 'guest';
         
         return $this->create($data);
     }
 
     /**
-     * Login - cari user berdasarkan email
+     * Find user by email
      */
-    public function findByEmail($email)
+    public function findByEmail(string $email): ?object
     {
         return $this->findBy('email', $email);
     }
 
     /**
-     * Verify password
+     * Check if email exists
      */
-    public function verifyPassword($password, $hashedPassword)
+    public function emailExists(string $email): bool
     {
-        return password_verify($password, $hashedPassword);
+        return $this->findByEmail($email) !== null;
     }
 
     /**
-     * Cek email sudah ada atau belum
+     * Update profile (excluding password)
      */
-    public function emailExists($email)
+    public function updateProfile(int $id, array $data): bool
     {
-        return $this->findByEmail($email) !== false;
-    }
-
-    /**
-     * Update password
-     */
-    public function updatePassword($id, $newPassword)
-    {
-        return $this->update($id, [
-            'password_hash' => password_hash($newPassword, PASSWORD_DEFAULT)
-        ]);
-    }
-
-    /**
-     * Get users by role
-     */
-    public function getByRole($role)
-    {
-        return $this->where('role', $role);
-    }
-
-    /**
-     * Get all admins
-     */
-    public function getAdmins()
-    {
-        return $this->getByRole('admin');
-    }
-
-    /**
-     * Get all guests
-     */
-    public function getGuests()
-    {
-        return $this->getByRole('guest');
+        unset($data['password'], $data['password_hash']);
+        return $this->update($id, $data);
     }
 
     /**
      * Update profile image
      */
-    public function updateProfileImage($id, $imagePath)
+    public function updateProfileImage(int $id, string $imagePath): bool
     {
-        return $this->update($id, ['profile_image' => $imagePath]);
+        return $this->updateImage($id, $imagePath);
     }
 }

@@ -26,7 +26,10 @@ class RoomController extends Controller
             'rooms' => $rooms,
             'selectedType' => $params['type'],
             'minPrice' => $params['min_price'],
-            'maxPrice' => $params['max_price']
+            'maxPrice' => $params['max_price'],
+            'search' => $params['search'] ?? '',
+            'checkIn' => $params['check_in'] ?? '',
+            'checkOut' => $params['check_out'] ?? ''
         ]);
     }
 

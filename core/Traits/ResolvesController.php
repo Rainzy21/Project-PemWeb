@@ -9,7 +9,17 @@ trait ResolvesController
      */
     protected function resolveControllerClass(string $controller): string
     {
-        return "App\\Controllers\\{$controller}";
+        // Jika sudah mengandung namespace (ada backslash), gunakan langsung
+        if (str_contains($controller, '\\')) {
+            // Admin\DashboardController -> App\Controllers\Admin\DashboardController
+            $controller = str_replace('Controller', '', $controller);
+            return "App\\Controllers\\{$controller}Controller";
+        }
+        
+        // Hapus 'Controller' suffix jika sudah ada
+        $controller = str_replace('Controller', '', $controller);
+        
+        return "App\\Controllers\\{$controller}Controller";
     }
 
     /**

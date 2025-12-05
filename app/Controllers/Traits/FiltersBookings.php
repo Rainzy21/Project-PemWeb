@@ -5,12 +5,12 @@ namespace App\Controllers\Traits;
 trait FiltersBookings
 {
     /**
-     * Get filtered bookings
+     * Get filtered bookings with details
      */
     protected function getFilteredBookings($bookingModel, ?string $status): array
     {
         if ($status && $this->isValidStatus($status)) {
-            return $bookingModel->getByStatus($status);
+            return $bookingModel->getByStatusWithDetails($status);
         }
 
         return $bookingModel->getAllWithDetails();

@@ -10,7 +10,7 @@ use App\Controllers\Traits\ValidatesRoomData;
 use App\Controllers\Traits\ManagesRoomOperations;
 use App\Controllers\Traits\HandlesBulkOperations;
 
-class RoomController extends Controller
+class AdminRoomController extends Controller
 {
     use RequiresAdmin, HandlesRoom, HandlesImageUpload, ValidatesRoomData, ManagesRoomOperations, HandlesBulkOperations;
 

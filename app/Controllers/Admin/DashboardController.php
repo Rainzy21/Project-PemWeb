@@ -24,7 +24,7 @@ class DashboardController extends Controller
     }
 
     /**
-     * Dashboard utama admin
+     * Dashboard utama admin dengan tabs
      */
     public function index()
     {
@@ -32,51 +32,56 @@ class DashboardController extends Controller
         $roomModel = $this->loadModel('Room');
         $bookingModel = $this->loadModel('Booking');
 
+        $activeTab = $_GET['tab'] ?? 'home';
+        $dateRange = $this->getReportDateRange();
+
         $recentBookings = array_slice($bookingModel->getAllWithDetails(), 0, 5);
 
-        $this->view->setLayout('admin')->render('admin/dashboard/index', [
+        // Data untuk semua tabs
+        $data = [
             'title' => 'Dashboard Admin - ' . APP_NAME,
+            'activeTab' => $activeTab,
+
+            // Home tab data
             'stats' => $this->getDashboardStats($userModel, $roomModel, $bookingModel),
             'recentBookings' => $recentBookings,
             'todayCheckIns' => $bookingModel->getTodayCheckIns(),
             'todayCheckOuts' => $bookingModel->getTodayCheckOuts(),
             'roomStats' => $this->getRoomStats($roomModel),
-            'bookingStats' => $this->getBookingStats($bookingModel)
-        ]);
-    }
+            'bookingStats' => $this->getBookingStats($bookingModel),
 
-    /**
-     * Analytics page
-     */
-    public function analytics()
-    {
-        $bookingModel = $this->loadModel('Booking');
-
-        $this->view->setLayout('admin')->render('admin/dashboard/analytics', [
-            'title' => 'Analytics - ' . APP_NAME,
+            // Analytics tab data
             'monthlyRevenue' => $this->getMonthlyRevenueChart($bookingModel),
             'bookingTrends' => $this->getBookingTrends($bookingModel),
-            'roomPopularity' => $this->getRoomTypePopularity($bookingModel)
-        ]);
-    }
+            'roomPopularity' => $this->getRoomTypePopularity($bookingModel),
 
-    /**
-     * Reports page
-     */
-    public function reports()
-    {
-        $bookingModel = $this->loadModel('Booking');
-        $roomModel = $this->loadModel('Room');
-        $dateRange = $this->getReportDateRange();
-
-        $this->view->setLayout('admin')->render('admin/dashboard/reports', [
-            'title' => 'Laporan - ' . APP_NAME,
+            // Reports tab data
             'startDate' => $dateRange['start'],
             'endDate' => $dateRange['end'],
             'revenueReport' => $this->getRevenueReport($bookingModel, $dateRange['start'], $dateRange['end']),
             'occupancyReport' => $this->getOccupancyReport($bookingModel, $roomModel, $dateRange['start'], $dateRange['end']),
-            'bookingSummary' => $this->getBookingSummary($bookingModel, $dateRange['start'], $dateRange['end'])
-        ]);
+            'bookingSummary' => $this->getBookingSummary($bookingModel, $dateRange['start'], $dateRange['end']),
+
+            // Activity Log tab data
+            'activities' => $this->getRecentActivities($bookingModel)
+        ];
+
+        $this->view->setLayout('admin')->render('admin/dashboard/index', $data);
+    }
+
+    /**
+     * Get recent activities
+     */
+    private function getRecentActivities($bookingModel)
+    {
+        return $bookingModel->raw(
+            "SELECT b.*, u.name as guest_name, r.room_number, 'booking' as activity_type
+             FROM bookings b
+             JOIN users u ON b.user_id = u.id
+             JOIN rooms r ON b.room_id = r.id
+             ORDER BY b.updated_at DESC
+             LIMIT 50"
+        );
     }
 
     /**
@@ -89,7 +94,7 @@ class DashboardController extends Controller
         $dateRange = $this->getReportDateRange();
 
         if ($format !== 'csv') {
-            return $this->redirect('admin/reports');
+            return $this->redirect('admin/dashboard?tab=reports');
         }
 
         $bookingModel = $this->loadModel('Booking');
@@ -108,35 +113,5 @@ class DashboardController extends Controller
                 $this->getRevenueExportData($bookingModel, $dateRange['start'], $dateRange['end'])
             );
         }
-    }
-
-    /**
-     * Settings page
-     */
-    public function settings()
-    {
-        $this->view->setLayout('admin')->render('admin/dashboard/settings', [
-            'title' => 'Settings - ' . APP_NAME
-        ]);
-    }
-
-    /**
-     * Activity log
-     */
-    public function activityLog()
-    {
-        $activities = $this->loadModel('Booking')->raw(
-            "SELECT b.*, u.name as guest_name, r.room_number, 'booking' as activity_type
-             FROM bookings b
-             JOIN users u ON b.user_id = u.id
-             JOIN rooms r ON b.room_id = r.id
-             ORDER BY b.updated_at DESC
-             LIMIT 50"
-        );
-
-        $this->view->setLayout('admin')->render('admin/dashboard/activity-log', [
-            'title' => 'Activity Log - ' . APP_NAME,
-            'activities' => $activities
-        ]);
     }
 }

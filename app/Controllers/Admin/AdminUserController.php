@@ -12,7 +12,7 @@ use App\Controllers\Traits\HandlesUserBulkActions;
 use App\Controllers\Traits\ExportsUsers;
 use App\Controllers\Traits\ExportsCsv;
 
-class UserController extends Controller
+class AdminUserController extends Controller
 {
     use RequiresAdmin, HandlesImageUpload, ValidatesUserData, ManagesUserOperations;
     use FiltersUsers, HandlesUserBulkActions, ExportsUsers, ExportsCsv;
@@ -326,5 +326,83 @@ class UserController extends Controller
             'success' => true,
             'stats' => $stats
         ]);
+    }
+
+    /**
+     * Tampilkan daftar password reset requests
+     */
+    public function passwordRequests()
+    {
+        $requestModel = $this->loadModel('PasswordResetRequest');
+        
+        $this->view->setLayout('admin')->render('admin/users/password-requests', [
+            'title' => 'Password Reset Requests - ' . APP_NAME,
+            'requests' => $requestModel->getPendingWithUser(),
+            'allRequests' => $requestModel->getAllWithUser()
+        ]);
+    }
+
+    /**
+     * Approve password reset request - set password baru
+     */
+    public function approvePasswordRequest($id)
+    {
+        if (!$this->isPost()) {
+            return $this->redirect('admin/users/password-requests');
+        }
+
+        $newPassword = $_POST['new_password'] ?? '';
+        
+        if (strlen($newPassword) < 6) {
+            $this->setFlash('error', 'Password minimal 6 karakter');
+            return $this->redirect('admin/users/password-requests');
+        }
+
+        $requestModel = $this->loadModel('PasswordResetRequest');
+        $request = $requestModel->find($id);
+
+        if (!$request || $request->status !== 'pending') {
+            $this->setFlash('error', 'Request tidak ditemukan atau sudah diproses');
+            return $this->redirect('admin/users/password-requests');
+        }
+
+        // Update password user
+        $userModel = $this->loadModel('User');
+        $userModel->updatePassword($request->user_id, $newPassword);
+
+        // Update status request
+        $requestModel->update($id, [
+            'status' => 'processed',
+            'processed_at' => date('Y-m-d H:i:s')
+        ]);
+
+        $this->setFlash('success', 'Password berhasil direset untuk user');
+        $this->redirect('admin/users/password-requests');
+    }
+
+    /**
+     * Reject password reset request
+     */
+    public function rejectPasswordRequest($id)
+    {
+        if (!$this->isPost()) {
+            return $this->redirect('admin/users/password-requests');
+        }
+
+        $requestModel = $this->loadModel('PasswordResetRequest');
+        $request = $requestModel->find($id);
+
+        if (!$request || $request->status !== 'pending') {
+            $this->setFlash('error', 'Request tidak ditemukan atau sudah diproses');
+            return $this->redirect('admin/users/password-requests');
+        }
+
+        $requestModel->update($id, [
+            'status' => 'rejected',
+            'processed_at' => date('Y-m-d H:i:s')
+        ]);
+
+        $this->setFlash('success', 'Request ditolak');
+        $this->redirect('admin/users/password-requests');
     }
 }

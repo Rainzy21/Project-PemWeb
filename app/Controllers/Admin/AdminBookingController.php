@@ -10,7 +10,7 @@ use App\Controllers\Traits\FiltersBookings;
 use App\Controllers\Traits\ExportsBookings;
 use App\Controllers\Traits\ExportsCsv;
 
-class BookingController extends Controller
+class AdminBookingController extends Controller
 {
     use RequiresAdmin, ManagesBookingStatus, HandlesAdminBooking;
     use FiltersBookings, ExportsBookings, ExportsCsv;
@@ -252,10 +252,12 @@ class BookingController extends Controller
         $roomModel = $this->loadModel('Room');
         $userModel = $this->loadModel('User');
 
-        $this->view->setLayout('admin')->render('admin/bookings/create', [
+        $this->view->setLayout('admin')->render('admin/bookings/form', [
             'title' => 'Buat Booking Baru - ' . APP_NAME,
             'rooms' => $roomModel->getAvailable(),
-            'guests' => $userModel->getGuests()
+            'guests' => $userModel->getGuests(),
+            'action' => 'create',
+            'booking' => null
         ]);
     }
 

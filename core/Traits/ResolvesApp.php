@@ -13,7 +13,7 @@ trait ResolvesApp
 
         if ($segment && $this->controllerExists($segment)) {
             $this->removeSegment($url, 0);
-            return ucfirst($segment);
+            return ucfirst($segment) . 'Controller';
         }
 
         return $this->defaultController;
@@ -24,7 +24,8 @@ trait ResolvesApp
      */
     protected function controllerExists(string $name): bool
     {
-        $path = $this->controllerPath . ucfirst($name) . '.php';
+        // Cek file dengan suffix 'Controller'
+        $path = $this->controllerPath . ucfirst($name) . 'Controller.php';
         return file_exists($path);
     }
 
@@ -33,10 +34,10 @@ trait ResolvesApp
      */
     protected function resolveMethod(object $controller, array &$url): string
     {
-        $segment = $this->getSegment($url, 1);
+        $segment = $this->getSegment($url, 0);
 
         if ($segment && method_exists($controller, $segment)) {
-            $this->removeSegment($url, 1);
+            $this->removeSegment($url, 0);
             return $segment;
         }
 
@@ -48,8 +49,15 @@ trait ResolvesApp
      */
     protected function createController(string $name): object
     {
-        require_once $this->controllerPath . $name . '.php';
-        return new $name();
+        // Gunakan namespace lengkap
+        $controllerClass = 'App\\Controllers\\' . $name;
+        
+        // Autoloader akan handle loading file-nya
+        if (!class_exists($controllerClass)) {
+            throw new \Exception("Controller '$name' not found");
+        }
+        
+        return new $controllerClass();
     }
 
     /**

@@ -1,17 +1,21 @@
 <IfModule mod_rewrite.c>
     RewriteEngine On
-    RewriteCond %{REQUEST_FILENAME} !-f
-    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteBase /Project-PemWeb/public/
+    
+    # Jika request adalah file yang ada, langsung akses
+    RewriteCond %{REQUEST_FILENAME} -f
+    RewriteRule ^ - [L]
+    
+    # Jika request adalah folder yang ada, langsung akses
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
+    
+    # Arahkan semua request lainnya ke index.php
     RewriteRule ^(.*)$ index.php?url=$1 [QSA,L]
 </IfModule>
 
-# Set proper headers for assets
-<IfModule mod_headers.c>
-    <FilesMatch "\.(jpg|jpeg|png|gif|webp|svg|ico)$">
-        Header set Cache-Control "max-age=31536000, public"
-    </FilesMatch>
-    
-    <FilesMatch "\.(css|js)$">
-        Header set Cache-Control "max-age=604800, public"
-    </FilesMatch>
-</IfModule>
+# Set default charset
+AddDefaultCharset UTF-8
+
+# Mencegah browsing direktori
+Options -Indexes

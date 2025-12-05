@@ -89,11 +89,13 @@ class Router
     {
         $segments = explode('/', $url);
 
+        // Ubah dari: ucfirst($segments[0]) . 'Controller'
+        // Menjadi: ucfirst($segments[0]) (tanpa 'Controller')
         $controller = !empty($segments[0]) ? ucfirst($segments[0]) : 'Home';
         $method = $segments[1] ?? 'index';
         $params = array_slice($segments, 2);
 
-        $this->dispatchToController($controller . 'Controller', $method, $params);
+        $this->dispatchToController($controller, $method, $params);
     }
 
     /**

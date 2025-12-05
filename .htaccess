@@ -1,19 +1,28 @@
-RewriteEngine On
+# Redirect semua request ke folder public
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /Project-PemWeb/
+    
+    # Jika request adalah file yang ada, langsung akses
+    RewriteCond %{REQUEST_FILENAME} -f
+    RewriteRule ^ - [L]
+    
+    # Jika request adalah folder yang ada, langsung akses
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
+    
+    # Bypass folder storage - langsung serve file
+    RewriteRule ^storage/(.*)$ storage/$1 [L]
+    
+    # Arahkan semua request lainnya ke public/index.php
+    RewriteRule ^(.*)$ public/index.php?url=$1 [QSA,L]
+</IfModule>
 
-# Allow direct access to existing files and directories
-RewriteCond %{REQUEST_FILENAME} -f
-RewriteRule ^ - [L]
+# Mencegah akses langsung ke file sensitif
+<FilesMatch "\.(env|log|ini|sql)$">
+    Order Allow,Deny
+    Deny from all
+</FilesMatch>
 
-RewriteCond %{REQUEST_FILENAME} -d
-RewriteRule ^ - [L]
-
-# Allow access to storage folder for images
-RewriteCond %{REQUEST_URI} ^/storage/uploads/.*\.(jpg|jpeg|png|gif|webp|svg|ico)$ [NC]
-RewriteRule ^ - [L]
-
-# Allow access to public assets
-RewriteCond %{REQUEST_URI} ^/public/assets/.*$ [NC]
-RewriteRule ^ - [L]
-
-# Route all other requests to public/index.php
-RewriteRule ^(.*)$ public/index.php?url=$1 [QSA,L]
+# Mencegah browsing direktori
+Options -Indexes

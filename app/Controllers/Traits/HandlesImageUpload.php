@@ -57,7 +57,8 @@ trait HandlesImageUpload
             return false;
         }
 
-        $fullPath = dirname(__DIR__, 2) . '/' . $imagePath;
+        // Path relatif dari root project
+        $fullPath = dirname(__DIR__, 3) . '/' . $imagePath;
 
         if (file_exists($fullPath)) {
             return unlink($fullPath);
@@ -67,11 +68,12 @@ trait HandlesImageUpload
     }
 
     /**
-     * Get upload path
+     * Get upload path - mengarah ke root/storage/uploads/
      */
     protected function getUploadPath(string $subDir): string
     {
-        return dirname(__DIR__, 2) . "/storage/uploads/{$subDir}/";
+        // dirname(__DIR__, 3) = dari Traits -> Controllers -> app -> ROOT
+        return dirname(__DIR__, 3) . "/storage/uploads/{$subDir}/";
     }
 
     /**

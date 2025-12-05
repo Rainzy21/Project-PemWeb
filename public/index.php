@@ -9,18 +9,22 @@ require_once __DIR__ . '/../config/config.php';
 spl_autoload_register(function ($class) {
     $baseDir = dirname(__DIR__);
     
-    // Mapping namespace ke direktori (urutan: paling spesifik dulu)
+    // Mapping namespace ke direktori
     $namespaceMap = [
         'Core\\Traits\\' => '/core/Traits/',
         'Core\\' => '/core/',
-        'App\\Controllers\\' => '/app/controllers/',
-        'App\\Models\\Traits\\' => '/app/models/Traits/',
-        'App\\Models\\' => '/app/models/'
+        'App\\Controllers\\Traits\\' => '/app/Controllers/Traits/',
+        'App\\Controllers\\Admin\\' => '/app/Controllers/Admin/',  // Tambah ini
+        'App\\Controllers\\' => '/app/Controllers/',
+        'App\\Models\\Traits\\' => '/app/Models/Traits/',
+        'App\\Models\\' => '/app/Models/'
     ];
 
     foreach ($namespaceMap as $namespace => $dir) {
         if (strpos($class, $namespace) === 0) {
             $relativeClass = substr($class, strlen($namespace));
+            // Ganti backslash dengan forward slash untuk path
+            $relativeClass = str_replace('\\', '/', $relativeClass);
             $file = $baseDir . $dir . $relativeClass . '.php';
             
             if (file_exists($file)) {

@@ -4,6 +4,7 @@
 // BASE URL
 // ============================================
 define('BASE_URL', 'http://localhost/Project-PemWeb/public/');
+define('STORAGE_URL', 'http://localhost/Project-PemWeb/storage/');  // URL untuk akses storage
 define('STORAGE_PATH', __DIR__ . '/../storage');
 
 // ============================================
@@ -29,6 +30,6 @@ define('SESSION_LIFETIME', 3600); // 1 hour
 // ============================================
 // UPLOAD CONFIGURATION
 // ============================================
-define('UPLOAD_PATH', __DIR__ . '/../public/uploads/');
+define('UPLOAD_PATH', __DIR__ . '/../storage/uploads/');
 define('MAX_FILE_SIZE', 2 * 1024 * 1024); // 2MB
 define('ALLOWED_EXTENSIONS', ['jpg', 'jpeg', 'png', 'gif']);

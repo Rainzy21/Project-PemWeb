@@ -60,8 +60,8 @@ trait ValidatesBookingDates
     {
         return [
             'room_id' => $_POST['room_id'] ?? '',
-            'check_in' => $_POST['check_in_date'] ?? '',
-            'check_out' => $_POST['check_out_date'] ?? ''
+            'check_in' => $_POST['check_in'] ?? $_POST['check_in_date'] ?? '',
+            'check_out' => $_POST['check_out'] ?? $_POST['check_out_date'] ?? ''
         ];
     }
 

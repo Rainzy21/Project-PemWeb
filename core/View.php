@@ -11,7 +11,7 @@ class View
 
     public function __construct()
     {
-        $this->viewPath = dirname(__DIR__) . '/app/views/';
+        $this->viewPath = dirname(__DIR__) . '/app/Views/';
     }
 
     /**
@@ -194,5 +194,26 @@ class View
     public function old($key, $default = '')
     {
         return $_SESSION['old'][$key] ?? $default;
+    }
+
+    /**
+     * Check if current URL matches the given path (for active menu)
+     */
+    public function isActive($path)
+    {
+        $currentUri = trim($_SERVER['REQUEST_URI'], '/');
+        $path = trim($path, '/');
+        
+        // Remove query string
+        $currentUri = strtok($currentUri, '?');
+        
+        // Remove base path (e.g., Project-PemWeb/public)
+        $basePath = trim(parse_url(BASE_URL, PHP_URL_PATH), '/');
+        if ($basePath && strpos($currentUri, $basePath) === 0) {
+            $currentUri = trim(substr($currentUri, strlen($basePath)), '/');
+        }
+        
+        // Exact match or starts with path
+        return ($currentUri === $path || strpos($currentUri, $path . '/') === 0);
     }
 }

@@ -14,12 +14,12 @@ class BookingController extends Controller
     /**
      * Tampilkan form booking untuk room tertentu
      */
-    public function create($roomId)
+    public function create($id)  // Changed from $roomId to $id
     {
         $this->requireLogin();
 
         $roomModel = $this->loadModel('Room');
-        $room = $this->findRoomOrFail($roomModel, $roomId);
+        $room = $this->findRoomOrFail($roomModel, $id);  // Changed from $roomId to $id
         
         if (!$room || !$this->ensureRoomAvailable($room)) {
             return;
@@ -43,7 +43,7 @@ class BookingController extends Controller
         }
 
         $input = $this->getBookingInput();
-        $redirectTo = 'booking/' . $input['room_id'];
+        $redirectTo = 'booking/create/' . $input['room_id'];  // Fixed: tambah 'create/'
 
         // Validasi input & tanggal
         if (!$this->validateBookingInput($input, $redirectTo)) return;
@@ -70,20 +70,30 @@ class BookingController extends Controller
     {
         $bookingModel = $this->loadModel('Booking');
 
-        $bookingId = $bookingModel->createBooking(
-            $_SESSION['user_id'],
-            $input['room_id'],
+        // Calculate total price
+        $totalPrice = $bookingModel->calculateTotalPrice(
+            $room->price_per_night,
             $input['check_in'],
-            $input['check_out'],
-            $room->price_per_night
+            $input['check_out']
         );
 
+        // Create booking using the model's create method
+        $bookingId = $bookingModel->create([
+            'user_id' => $_SESSION['user_id'],
+            'room_id' => $input['room_id'],
+            'check_in_date' => $input['check_in'],
+            'check_out_date' => $input['check_out'],
+            'total_price' => $totalPrice,
+            'status' => 'pending'
+        ]);
+
         if ($bookingId) {
+            unset($_SESSION['old']);
             $this->setFlash('success', 'Booking berhasil! Silakan tunggu konfirmasi');
             $this->redirect('my-bookings');
         } else {
             $this->setFlash('error', 'Booking gagal. Silakan coba lagi');
-            $this->redirect('booking/' . $input['room_id']);
+            $this->redirect('booking/create/' . $input['room_id']);
         }
     }
 
@@ -96,7 +106,7 @@ class BookingController extends Controller
 
         $bookings = $this->loadModel('Booking')->getByUser($_SESSION['user_id']);
 
-        $this->view->setLayout('main')->render('booking/my-bookings', [
+        $this->view->setLayout('main')->render('home/my-bookings', [
             'title' => 'Booking Saya - ' . APP_NAME,
             'bookings' => $bookings
         ]);
@@ -185,7 +195,8 @@ class BookingController extends Controller
      */
     protected function buildAvailabilityResponse($roomModel, object $room, array $input): array
     {
-        $isAvailable = $roomModel->isAvailableForDates($input['room_id'], $input['check_in'], $input['check_out']);
+        // Cek is_available DAN tidak ada booking yang overlap
+        $isAvailable = $room->is_available && $roomModel->isAvailableForDates($input['room_id'], $input['check_in'], $input['check_out']);
 
         $bookingModel = $this->loadModel('Booking');
         $nights = $bookingModel->calculateNights($input['check_in'], $input['check_out']);

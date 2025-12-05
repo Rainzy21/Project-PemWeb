@@ -271,6 +271,24 @@ class Booking extends Model
     }
 
     /**
+     * Get bookings by status with user and room details
+     */
+    public function getByStatusWithDetails(string $status): array
+    {
+        $sql = "SELECT b.*, u.name as guest_name, u.email as guest_email, u.phone as guest_phone,
+                       r.room_number, r.room_type, r.price_per_night
+                FROM {$this->table} b
+                JOIN users u ON b.user_id = u.id
+                JOIN rooms r ON b.room_id = r.id
+                WHERE b.status = :status
+                ORDER BY b.created_at DESC";
+        
+        return $this->db->query($sql)
+                        ->bind(':status', $status)
+                        ->resultSet();
+    }
+
+    /**
      * Get all statuses
      */
     public static function getStatuses(): array

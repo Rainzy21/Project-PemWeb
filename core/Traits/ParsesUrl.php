@@ -26,11 +26,12 @@ trait ParsesUrl
     }
 
     /**
-     * Remove segment from URL
+     * Remove segment from URL and reindex array
      */
     protected function removeSegment(array &$url, int $index): void
     {
         unset($url[$index]);
+        $url = array_values($url);  // Reindex the array
     }
 
     /**

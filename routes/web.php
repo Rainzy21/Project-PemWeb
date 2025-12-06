@@ -17,7 +17,7 @@ $router->get('login', 'AuthController@login');
 $router->post('login', 'AuthController@doLogin');
 $router->get('register', 'AuthController@register');
 $router->post('register', 'AuthController@doRegister');
-$router->post('logout', 'AuthController@logout');  // ⚠️ Ubah GET ke POST
+$router->post('logout', 'AuthController@logout'); 
 $router->get('forgot-password', 'AuthController@forgotPassword');
 $router->post('forgot-password', 'AuthController@doForgotPassword');
 
